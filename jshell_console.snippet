@@ -1,0 +1,39 @@
+int msgType = 9;
+    String ip = "I'm a string, YO!";
+    int port = 1969;
+
+    ByteArrayOutputStream baostream = new ByteArrayOutputStream();
+    DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(baostream));
+
+    dout.writeInt(msgType);
+    dout.write(ip.getBytes());
+    dout.writeInt(port);
+    dout.flush();
+
+    byte[] data = baostream.toByteArray();
+
+    baostream.close();
+    dout.close();
+
+
+    ByteArrayInputStream baistream = new ByteArrayInputStream(data);
+    DataInputStream din = new DataInputStream(new BufferedInputStream(baistream));
+
+    try {
+        int readMsgType = din.readInt();
+        System.out.println(readMsgType);
+
+        int SIZE_OF_INT = 4;
+        int ipLength = data.length - SIZE_OF_INT * 2;
+        byte[] read = new byte[ipLength];
+        din.readFully(read, 0, ipLength);
+        String readIp = new String(read);
+        System.out.println(readIp);
+
+        int readPort = din.readInt();
+        System.out.println(readPort);
+
+    }
+    catch (IOException e) {
+        e.printStackTrace();
+    }
