@@ -6,19 +6,20 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.net.Socket;
 
 public class MessageFactory {
     private static final int SIZE_OF_INT = 4;
     private static final int SIZE_OF_BYTE = 1;
 
-    public static Message getMessageFromData(byte[] data) throws IOException {
+    public static Message getMessageFromData(byte[] data, Socket socket) throws IOException {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
         DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(byteArrayInputStream));
 
         int protocol = dataInputStream.readInt();
         switch (protocol) {
             case Protocol.REGISTER_REQUEST:
-                return createRegisterRequest(data.length, dataInputStream);
+                return createRegisterRequest(data.length, dataInputStream, socket);
             case Protocol.REGISTER_RESPONSE:
                 return createRegisterResponse(data.length, dataInputStream);
             default:
@@ -35,11 +36,12 @@ public class MessageFactory {
         int status = dataInputStream.read();
         int infoLength = dataLength - SIZE_OF_INT - SIZE_OF_BYTE;
         byte[] infoBytes = new byte[infoLength];
+        dataInputStream.readFully(infoBytes, 0, infoLength);
         String info = new String(infoBytes);
         return RegisterResponse.of(status, info);
     }
 
-    private static RegisterRequest createRegisterRequest(int dataLength, DataInputStream dataInputStream) throws IOException {
+    private static RegisterRequest createRegisterRequest(int dataLength, DataInputStream dataInputStream, Socket socket) throws IOException {
         /**
          * Message Type (int): REGISTER_REQUEST
          * IP address (String)
@@ -50,6 +52,6 @@ public class MessageFactory {
         dataInputStream.readFully(ipBytes, 0, ipLength);
         String ip = new String(ipBytes);
         int port = dataInputStream.readInt();
-        return RegisterRequest.of(ip, port);
+        return RegisterRequest.of(ip, port, socket);
     }
 }

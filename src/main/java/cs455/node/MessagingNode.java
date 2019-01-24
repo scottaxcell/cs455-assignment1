@@ -8,6 +8,7 @@ import cs455.transport.RegisterRequest;
 import cs455.util.Utils;
 
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.Socket;
 
 public class MessagingNode implements Node {
@@ -39,7 +40,7 @@ public class MessagingNode implements Node {
         // TODO appears serverThread is not up and running at this point, need to wait for it
         try {
             Thread.sleep(500);
-            RegisterRequest registerRequest = RegisterRequest.of(serverThread.getIp(), serverThread.getPort());
+            RegisterRequest registerRequest = RegisterRequest.of(Inet4Address.getLocalHost().getHostAddress(), serverThread.getPort(), registryReceiverThread.getSocket());
             registrySender.send(registerRequest.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
@@ -62,6 +63,7 @@ public class MessagingNode implements Node {
     @Override
     public void onMessage(Message message) {
         // TODO handle messages
+        Utils.debug("received: " + message);
     }
 
     private static void printHelpAndExit() {

@@ -62,4 +62,13 @@ public class RegisterRequest implements Message {
 
         return data;
     }
+
+    @Override
+    public String toString() {
+        return "RegisterRequest{" +
+            "ip='" + ip + '\'' +
+            ", port=" + port +
+            ", socket=" + socket +
+            '}';
+    }
 }

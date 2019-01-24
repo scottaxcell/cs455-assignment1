@@ -48,4 +48,12 @@ public class RegisterResponse implements Message {
 
         return data;
     }
+
+    @Override
+    public String toString() {
+        return "RegisterResponse{" +
+            "status=" + status +
+            ", info='" + info + '\'' +
+            '}';
+    }
 }

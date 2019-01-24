@@ -51,7 +51,7 @@ public class ReceiverThread extends Thread {
 
             if (data != null) {
                 try {
-                    Message message = MessageFactory.getMessageFromData(data);
+                    Message message = MessageFactory.getMessageFromData(data, getSocket());
                     node.onMessage(message);
                 } catch (IOException e) {
                     e.printStackTrace();

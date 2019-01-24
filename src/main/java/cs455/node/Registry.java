@@ -4,10 +4,13 @@ import cs455.DataSender;
 import cs455.ServerThread;
 import cs455.transport.Message;
 import cs455.transport.RegisterRequest;
+import cs455.transport.RegisterResponse;
 import cs455.util.Utils;
 import cs455.wireformats.Protocol;
+import cs455.wireformats.Status;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +21,7 @@ import java.util.stream.Stream;
 
 
 public class Registry implements Node {
+    public static final String LOOPBACK_IP = "127.0.0.1";
     private int port = 50700;
     private ServerThread serverThread;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -55,6 +59,7 @@ public class Registry implements Node {
         switch (protocol) {
             case Protocol.REGISTER_REQUEST:
                 handleRegisterRequest(message);
+                break;
             default:
                 throw new RuntimeException("received an unknown message");
         }
@@ -67,32 +72,58 @@ public class Registry implements Node {
         }
 
         RegisterRequest request = (RegisterRequest) message;
+        Utils.debug("received: " + request);
         Socket socket = request.getSocket();
         DataSender dataSender = DataSender.of(socket);
-        String uniqueAddress = String.format("%s:%d", request.getIp(), request.getPort());
+        String address = String.format("%s:%d", request.getIp(), request.getPort());
 
         synchronized (registeredNodes) {
-            registeredNodes.entrySet().stream()
-                .filter(e -> e.getKey().equals(uniqueAddress))
-                .findFirst()
-                .ifPresent(e -> {
-                    sendRegisterResponse(dataSender, 1, "Registration request failed. Node previously registered.");
-                    return;
-                });
-
-            if (!request.getIp().equals(socket.getInetAddress().getHostAddress())) {
-                sendRegisterResponse(dataSender, 1, "Registration request failed. Mismatch in IP.");
+            if (registeredNodes.containsKey(address)) {
+                sendNodeAlreadyRegisteredResponse(dataSender);
                 return;
             }
 
-            registeredNodes.put(uniqueAddress, dataSender);
-            String info = String.format("Registration request successful. The number of messaging nodes currently constituting the overlay is (%s).", registeredNodes.size());
-            sendRegisterResponse(dataSender, 0, info);
+            if (!request.getIp().equals(socket.getInetAddress().getHostAddress())) {
+                if (socket.getInetAddress().getHostAddress().equals(LOOPBACK_IP)) {
+                    // handle scenario where messaging node exists on the same machine
+                    if (!request.getIp().equals(InetAddress.getLocalHost().getHostAddress())) {
+                        sendMismatchedIpRegisterResponse(dataSender);
+                        return;
+                    }
+                }
+                else {
+                    sendMismatchedIpRegisterResponse(dataSender);
+                    return;
+                }
+            }
+
+            registeredNodes.put(address, dataSender);
+            sendSuccessRegisterResponse(dataSender);
         }
     }
 
+    private void sendNodeAlreadyRegisteredResponse(DataSender dataSender) {
+        sendRegisterResponse(dataSender, Status.FAILURE, "Registration request failed. Node previously registered.");
+    }
+
+    private void sendSuccessRegisterResponse(DataSender dataSender) {
+        String info = String.format("Registration request successful. The number of messaging nodes currently constituting the overlay is (%s).", registeredNodes.size());
+        sendRegisterResponse(dataSender, Status.SUCCESS, info);
+    }
+
+    private void sendMismatchedIpRegisterResponse(DataSender dataSender) {
+        sendRegisterResponse(dataSender, Status.FAILURE, "Registration request failed. Mismatch in IP.");
+    }
+
     private void sendRegisterResponse(DataSender dataSender, int status, String info) {
-        // TODO
+        RegisterResponse response = RegisterResponse.of(status, info);
+        try {
+            dataSender.send(response.getBytes());
+            Utils.debug("sent: " + response);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void printHelpAndExit() {

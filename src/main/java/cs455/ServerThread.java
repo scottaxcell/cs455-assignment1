@@ -30,7 +30,7 @@ public class ServerThread extends Thread {
     public void run() {
         try {
             ServerSocket serverSocket = new ServerSocket(port);
-            ip = Inet4Address.getLocalHost().getHostAddress();
+            ip = serverSocket.getInetAddress().getHostAddress();
             port = serverSocket.getLocalPort();
             Utils.debug("ServerThread started on " + getIp() + ":" + getPort());
 
