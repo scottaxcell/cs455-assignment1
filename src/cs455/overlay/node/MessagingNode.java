@@ -1,16 +1,18 @@
 package cs455.overlay.node;
 
 import cs455.overlay.Utils;
+import cs455.overlay.messages.Message;
+import cs455.overlay.messages.RegisterRequest;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-public class MessagingNode {
+public class MessagingNode implements Node {
     private String registryIp;
     private int registryPort;
     private ServerThread serverThread;
     private ReceiverThread registryReceiverThread;
+    private DataSender registrySender;
 
     private MessagingNode(String registryIp, int registryPort) {
         this.registryIp = registryIp;
@@ -21,31 +23,42 @@ public class MessagingNode {
         return new MessagingNode(registryHost, registryPort);
     }
 
-    private void start() {
-        serverThread = ServerThread.of(0);
+    private void go() {
+        serverThread = ServerThread.of(0, this);
         serverThread.start();
 
         connectToRegistry();
+        sendRegisterRequest();
+    }
+
+    private void sendRegisterRequest() {
+        // connectToRegistry must be called before this, registrySender assumed to be valid
+        // TODO appears serverThread is not up and running at this point, need to wait for it
+        try {
+            Thread.sleep(2000);
+            RegisterRequest registerRequest = RegisterRequest.of(serverThread.getIp(), serverThread.getPort());
+            registrySender.send(registerRequest.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private void connectToRegistry() {
-        try (Socket registrySocket = new Socket(registryIp, registryPort)) {
-            registryReceiverThread = ReceiverThread.of(registrySocket);
+        try {
+            Socket registrySocket = new Socket(registryIp, registryPort);
+            registryReceiverThread = ReceiverThread.of(registrySocket, this);
             registryReceiverThread.start();
-
-            // test message
-            String msg = "from messagingnode to registry, how did I do?";
-            DataOutputStream dout = new DataOutputStream(registrySocket.getOutputStream());
-            byte[] data = msg.getBytes();
-            int dataLength = data.length;
-            dout.writeInt(dataLength);
-            dout.write(data, 0, dataLength);
-            dout.flush();
-
-
+            registrySender = DataSender.of(registrySocket);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onMessage(Message message) {
+        // TODO handle messages
     }
 
     private static void printHelpAndExit() {
@@ -61,6 +74,6 @@ public class MessagingNode {
         int registryPort = Integer.parseInt(args[1]);
 
         MessagingNode messagingNode = MessagingNode.of(registryIp, registryPort);
-        messagingNode.start();
+        messagingNode.go();
     }
 }

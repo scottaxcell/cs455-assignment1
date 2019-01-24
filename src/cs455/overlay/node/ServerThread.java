@@ -12,25 +12,30 @@ public class ServerThread extends Thread {
     private String ip;
     private int port;
     private List<ReceiverThread> receiverThreads = new ArrayList<>();
+    private Node node;
 
-    private ServerThread(int port) {
+    private ServerThread(int port, Node node) {
         this.port = port;
+        this.node = node;
         setName("Server");
     }
 
-    public static ServerThread of(int port) {
-        return new ServerThread(port);
+    public static ServerThread of(int port, Node node) {
+        return new ServerThread(port, node);
     }
 
     @Override
     public void run() {
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
+        try {
+            ServerSocket serverSocket = new ServerSocket(port);
             Utils.debug("ServerThread started on " + serverSocket.getInetAddress() + ":" + serverSocket.getLocalPort());
             ip = serverSocket.getInetAddress().getHostAddress();
+            port = serverSocket.getLocalPort();
 
             while (!interrupted()) {
                 Socket incomingSocket = serverSocket.accept();
-                ReceiverThread receiverThread = ReceiverThread.of(incomingSocket);
+                ReceiverThread receiverThread = ReceiverThread.of(incomingSocket, node);
+                receiverThreads.add(receiverThread);
                 receiverThread.start();
                 // TODO should I use a thread pool here to limit how many threads are created?
             }
@@ -50,5 +55,13 @@ public class ServerThread extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public int getPort() {
+        return port;
     }
 }

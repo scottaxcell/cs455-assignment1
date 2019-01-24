@@ -1,10 +1,11 @@
 package cs455.overlay.node;
 
 import cs455.overlay.Utils;
+import cs455.overlay.messages.Message;
+import cs455.overlay.messages.MessageFactory;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
@@ -12,14 +13,17 @@ import java.net.SocketException;
 public class ReceiverThread extends Thread {
     private Socket socket;
     private DataInputStream dataInputStream;
+    private Node node;
 
-    private ReceiverThread(Socket socket) throws IOException {
+    private ReceiverThread(Socket socket, Node node) throws IOException {
         this.socket = socket;
+        this.node = node;
         dataInputStream = new DataInputStream(socket.getInputStream());
+        setName("Receiver");
     }
 
-    public static ReceiverThread of(Socket incomingSocket) throws IOException {
-        return new ReceiverThread(incomingSocket);
+    public static ReceiverThread of(Socket incomingSocket, Node node) throws IOException {
+        return new ReceiverThread(incomingSocket, node);
     }
 
     public Socket getSocket() {
@@ -34,6 +38,9 @@ public class ReceiverThread extends Thread {
                 int dataLength = dataInputStream.readInt();
                 data = new byte[dataLength];
                 dataInputStream.readFully(data, 0, dataLength);
+            } catch (EOFException e) {
+                Utils.debug(e.getMessage());
+                break;
             } catch (SocketException e) {
                 Utils.debug(e.getMessage());
                 break;
@@ -42,17 +49,12 @@ public class ReceiverThread extends Thread {
             }
 
             if (data != null) {
-                Utils.debug("ReceiverThread received: " + data.toString());
-                ByteArrayInputStream baistream = new ByteArrayInputStream(data);
-                DataInputStream din = new DataInputStream(new BufferedInputStream(baistream));
-                byte[] recevied = new byte[1024];
                 try {
-                    din.readFully(recevied);
+                    Message message = MessageFactory.getMessageFromData(data);
+                    node.onMessage(message);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                Utils.debug("translated: " + new String(recevied));
-
             }
         }
     }

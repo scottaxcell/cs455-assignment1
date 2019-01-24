@@ -1,8 +1,10 @@
 package cs455.overlay.node;
 
 import cs455.overlay.Utils;
+import cs455.overlay.messages.Message;
 
-public class Registry {
+public class Registry implements Node {
+    private int port = 50700;
     private ServerThread serverThread;
 
     private Registry() {
@@ -10,7 +12,7 @@ public class Registry {
     }
 
     private void start() {
-        serverThread = ServerThread.of(50700);
+        serverThread = ServerThread.of(port, this);
         serverThread.start();
     }
 
@@ -19,10 +21,16 @@ public class Registry {
         return new Registry();
     }
 
+    @Override
+    public void onMessage(Message message) {
+        // TODO handle messages
+    }
+
     private static void printHelpAndExit() {
         Utils.out("USAGE: java cs455.overlay.node.Registry <port-number>\n");
         System.exit(-1);
     }
+
     public static void main(String[] args) {
 //        if (args.length != 1)
 //            printHelpAndExit();
