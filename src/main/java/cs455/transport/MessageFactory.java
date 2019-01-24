@@ -9,6 +9,7 @@ import java.io.IOException;
 
 public class MessageFactory {
     private static final int SIZE_OF_INT = 4;
+    private static final int SIZE_OF_BYTE = 1;
 
     public static Message getMessageFromData(byte[] data) throws IOException {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
@@ -18,9 +19,24 @@ public class MessageFactory {
         switch (protocol) {
             case Protocol.REGISTER_REQUEST:
                 return createRegisterRequest(data.length, dataInputStream);
+            case Protocol.REGISTER_RESPONSE:
+                return createRegisterResponse(data.length, dataInputStream);
             default:
                 throw new RuntimeException("received an unknown message");
         }
+    }
+
+    private static Message createRegisterResponse(int dataLength, DataInputStream dataInputStream) throws IOException {
+        /**
+         * Message Type (int): REGISTER_RESPONSE
+         * Status Code (byte): SUCCESS or FAILURE
+         * Additional Info (String):
+         */
+        int status = dataInputStream.read();
+        int infoLength = dataLength - SIZE_OF_INT - SIZE_OF_BYTE;
+        byte[] infoBytes = new byte[infoLength];
+        String info = new String(infoBytes);
+        return RegisterResponse.of(status, info);
     }
 
     private static RegisterRequest createRegisterRequest(int dataLength, DataInputStream dataInputStream) throws IOException {
@@ -29,9 +45,9 @@ public class MessageFactory {
          * IP address (String)
          * Port number (int)
          */
-        int ipStringLength = dataLength - SIZE_OF_INT * 2;
-        byte[] ipBytes = new byte[ipStringLength];
-        dataInputStream.readFully(ipBytes, 0, ipStringLength);
+        int ipLength = dataLength - SIZE_OF_INT * 2;
+        byte[] ipBytes = new byte[ipLength];
+        dataInputStream.readFully(ipBytes, 0, ipLength);
         String ip = new String(ipBytes);
         int port = dataInputStream.readInt();
         return RegisterRequest.of(ip, port);

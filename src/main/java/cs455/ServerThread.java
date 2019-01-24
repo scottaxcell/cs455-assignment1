@@ -4,6 +4,7 @@ import cs455.node.Node;
 import cs455.util.Utils;
 
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -29,9 +30,9 @@ public class ServerThread extends Thread {
     public void run() {
         try {
             ServerSocket serverSocket = new ServerSocket(port);
-            Utils.debug("ServerThread started on " + serverSocket.getInetAddress() + ":" + serverSocket.getLocalPort());
-            ip = serverSocket.getInetAddress().getHostAddress();
+            ip = Inet4Address.getLocalHost().getHostAddress();
             port = serverSocket.getLocalPort();
+            Utils.debug("ServerThread started on " + getIp() + ":" + getPort());
 
             while (!interrupted()) {
                 Socket incomingSocket = serverSocket.accept();
@@ -43,9 +44,8 @@ public class ServerThread extends Thread {
 
             receiverThreads.stream()
                 .forEach(this::closeReceiverThreadSocket);
-
-            Utils.debug("ServerThread interrupted on " + serverSocket.getInetAddress() + ":" + serverSocket.getLocalPort());
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -53,7 +53,8 @@ public class ServerThread extends Thread {
     private void closeReceiverThreadSocket(ReceiverThread receiverThread) {
         try {
             receiverThread.getSocket().close();
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
     }

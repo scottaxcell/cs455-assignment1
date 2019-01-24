@@ -16,4 +16,8 @@ public class Utils {
     public static void error(Object o) {
         System.err.println("ERROR: " + o);
     }
+
+    public static byte intToByte(int i) {
+        return (byte) i;
+    }
 }
