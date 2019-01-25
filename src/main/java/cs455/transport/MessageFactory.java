@@ -22,9 +22,41 @@ public class MessageFactory {
                 return createRegisterRequest(data.length, dataInputStream, socket);
             case Protocol.REGISTER_RESPONSE:
                 return createRegisterResponse(data.length, dataInputStream);
+            case Protocol.DEREGISTER_REQUEST:
+                return createDeregisterRequest(data.length, dataInputStream, socket);
+            case Protocol.DEREGISTER_RESPONSE:
+                return createDeregisterResponse(data.length, dataInputStream);
             default:
                 throw new RuntimeException("received an unknown message");
         }
+    }
+
+    private static Message createDeregisterResponse(int dataLength, DataInputStream dataInputStream) throws IOException {
+        /**
+         * Message Type (int): DEREGISTER_RESPONSE
+         * Status Code (byte): SUCCESS or FAILURE
+         * Additional Info (String):
+         */
+        int status = dataInputStream.read();
+        int infoLength = dataLength - SIZE_OF_INT - SIZE_OF_BYTE;
+        byte[] infoBytes = new byte[infoLength];
+        dataInputStream.readFully(infoBytes, 0, infoLength);
+        String info = new String(infoBytes);
+        return DeregisterResponse.of(status, info);
+    }
+
+    private static DeregisterRequest createDeregisterRequest(int dataLength, DataInputStream dataInputStream, Socket socket) throws IOException {
+        /**
+         * Message Type (int): DEREGISTER_REQUEST
+         * Node IP address (String)
+         * Node Port number (int)
+         */
+        int ipLength = dataLength - SIZE_OF_INT * 2;
+        byte[] ipBytes = new byte[ipLength];
+        dataInputStream.readFully(ipBytes, 0, ipLength);
+        String ip = new String(ipBytes);
+        int port = dataInputStream.readInt();
+        return DeregisterRequest.of(ip, port, socket);
     }
 
     private static Message createRegisterResponse(int dataLength, DataInputStream dataInputStream) throws IOException {

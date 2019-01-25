@@ -2,9 +2,7 @@ package cs455.node;
 
 import cs455.DataSender;
 import cs455.ServerThread;
-import cs455.transport.Message;
-import cs455.transport.RegisterRequest;
-import cs455.transport.RegisterResponse;
+import cs455.transport.*;
 import cs455.util.Utils;
 import cs455.wireformats.Protocol;
 import cs455.wireformats.Status;
@@ -12,6 +10,7 @@ import cs455.wireformats.Status;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -60,8 +59,72 @@ public class Registry implements Node {
             case Protocol.REGISTER_REQUEST:
                 handleRegisterRequest(message);
                 break;
+            case Protocol.DEREGISTER_REQUEST:
+                handleDeregisterRequest(message);
+                break;
             default:
                 throw new RuntimeException("received an unknown message");
+        }
+    }
+
+    private void handleDeregisterRequest(Message message) throws IOException {
+        if (!(message instanceof DeregisterRequest)) {
+            Utils.error("message of " + message.getClass() + " unexpected");
+            return;
+        }
+
+        DeregisterRequest request = (DeregisterRequest) message;
+        Utils.debug("received: " + request);
+        Socket socket = request.getSocket();
+        DataSender dataSender = DataSender.of(socket);
+        String address = String.format("%s:%d", request.getIp(), request.getPort());
+
+        if (!request.getIp().equals(socket.getInetAddress().getHostAddress())) {
+            if (socket.getInetAddress().getHostAddress().equals(LOOPBACK_IP)) {
+                // handle scenario where messaging node exists on the same machine
+                if (!request.getIp().equals(InetAddress.getLocalHost().getHostAddress())) {
+                    sendMismatchedIpDeregisterResponse(dataSender);
+                    return;
+                }
+            }
+            else {
+                sendMismatchedIpDeregisterResponse(dataSender);
+                return;
+            }
+        }
+
+        synchronized (registeredNodes) {
+            if (!registeredNodes.containsKey(address)) {
+                sendNodeNotKnownDeregisteredResponse(dataSender);
+                return;
+            }
+
+            registeredNodes.remove(address);
+            sendSuccessDeregisterResponse(dataSender);
+        }
+    }
+
+    private void sendSuccessDeregisterResponse(DataSender dataSender) {
+        String info = String.format("Deregistration request successful. The number of messaging nodes currently constituting the overlay is (%s).", registeredNodes.size());
+        sendDeregisterResponse(dataSender, Status.SUCCESS, info);
+    }
+
+    private void sendNodeNotKnownDeregisteredResponse(DataSender dataSender) {
+        sendDeregisterResponse(dataSender, Status.FAILURE, "Deregistration request failed. Node not previously registered.");
+    }
+
+    private void sendMismatchedIpDeregisterResponse(DataSender dataSender) {
+        sendDeregisterResponse(dataSender, Status.FAILURE, "Deregistration request failed. Mismatch in IP.");
+    }
+
+    private void sendDeregisterResponse(DataSender dataSender, int status, String info) {
+        DeregisterResponse response = DeregisterResponse.of(status, info);
+        try {
+            dataSender.send(response.getBytes());
+            Utils.debug("sent: " + response);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -77,24 +140,24 @@ public class Registry implements Node {
         DataSender dataSender = DataSender.of(socket);
         String address = String.format("%s:%d", request.getIp(), request.getPort());
 
+        if (!request.getIp().equals(socket.getInetAddress().getHostAddress())) {
+            if (socket.getInetAddress().getHostAddress().equals(LOOPBACK_IP)) {
+                // handle scenario where messaging node exists on the same machine
+                if (!request.getIp().equals(InetAddress.getLocalHost().getHostAddress())) {
+                    sendMismatchedIpRegisterResponse(dataSender);
+                    return;
+                }
+            }
+            else {
+                sendMismatchedIpRegisterResponse(dataSender);
+                return;
+            }
+        }
+
         synchronized (registeredNodes) {
             if (registeredNodes.containsKey(address)) {
                 sendNodeAlreadyRegisteredResponse(dataSender);
                 return;
-            }
-
-            if (!request.getIp().equals(socket.getInetAddress().getHostAddress())) {
-                if (socket.getInetAddress().getHostAddress().equals(LOOPBACK_IP)) {
-                    // handle scenario where messaging node exists on the same machine
-                    if (!request.getIp().equals(InetAddress.getLocalHost().getHostAddress())) {
-                        sendMismatchedIpRegisterResponse(dataSender);
-                        return;
-                    }
-                }
-                else {
-                    sendMismatchedIpRegisterResponse(dataSender);
-                    return;
-                }
             }
 
             registeredNodes.put(address, dataSender);
