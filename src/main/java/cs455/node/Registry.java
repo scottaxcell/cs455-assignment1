@@ -14,8 +14,10 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 
@@ -34,6 +36,8 @@ public class Registry implements Node {
     private void start() {
         serverThread = ServerThread.of(port, this);
         serverThread.start();
+
+        handleCmdLineInput();
     }
 
     private static Registry of(String[] args) {
@@ -186,6 +190,36 @@ public class Registry implements Node {
         }
         catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void handleCmdLineInput() {
+        String input;
+        Scanner scanner = new Scanner(System.in);
+        scanner.useDelimiter(Pattern.compile("[\\r\\n;]+"));
+
+        Utils.out("Registry\n========\n");
+
+        while (true) {
+            Utils.out("$ ");
+
+            input = scanner.next();
+
+            if (input.startsWith("list-messaging-nodes")) {
+//                listMessagingNodes();
+            }
+            else if (input.startsWith("list-weights")) {
+                // TODO
+            }
+            else if (input.startsWith("setup-overlay")) {
+                // TODO
+            }
+            else if (input.startsWith("send-overlay-link-weights")) {
+                // TODO
+            }
+            else if (input.startsWith("start")) {
+                // TODO
+            }
         }
     }
 
