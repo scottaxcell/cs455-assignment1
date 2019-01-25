@@ -8,6 +8,7 @@ public class Overlay {
     private int cr = 4; // default of 4
     private List<String> nodes = new ArrayList<>();
     private Map<String, List<String>> connections = new HashMap<>();
+    private static final int NUM_RETRIES = 5;
 
     private Overlay() {
     }
@@ -16,15 +17,42 @@ public class Overlay {
         return new Overlay();
     }
 
-    public void setup(String[] nodes, int cr) {
+    public boolean setup(String[] nodes, int cr) {
+        return setup(nodes, cr, 0);
+    }
+
+    private boolean setup(String[] nodes, int cr, int numRetries) {
+        if (numRetries >= NUM_RETRIES)
+            return false;
+
+        numRetries++;
+
+        this.connections = new HashMap<>();
         this.nodes = Arrays.asList(nodes);
         this.cr = cr;
 
         for (String node : nodes)
             connectNode(node);
 
-        checkNumberOfLinks();
-        checkForPartition();
+        if (!checkNumberOfLinks())
+            return setup(nodes, cr, numRetries);
+        if (!checkForPartition())
+            return setup(nodes, cr, numRetries);
+        if (!checkNodeConnectsToItself())
+            return setup(nodes, cr, numRetries);
+
+        return true;
+    }
+
+    private boolean checkNodeConnectsToItself() {
+        long numSelfConnections = connections.entrySet().stream()
+            .filter(e -> e.getValue().contains(e.getKey()))
+            .count();
+        if (numSelfConnections > 0) {
+            Utils.error("overlay is not valid. 1 or more nodes connect directly to themselves.");
+            return false;
+        }
+        return true;
     }
 
     private void connectNode(String node) {
@@ -53,15 +81,18 @@ public class Overlay {
         }
     }
 
-    private void checkNumberOfLinks() {
+    private boolean checkNumberOfLinks() {
         long numBadConnections = connections.entrySet().stream()
             .filter(e -> e.getValue().size() != cr)
             .count();
-        if (numBadConnections > 0)
+        if (numBadConnections > 0) {
             Utils.error(String.format("overlay is not valid. 1 or more nodes do not have %d connections.", cr));
+            return false;
+        }
+        return true;
     }
 
-    private void checkForPartition() {
+    private boolean checkForPartition() {
         for (String source : nodes) {
             for (String sink : nodes) {
                 if (source.equals(sink))
@@ -69,10 +100,11 @@ public class Overlay {
 
                 if (!isSinkReachable(source, sink)) {
                     Utils.error(String.format("source %s cannot reach sink %s", source, sink));
-                    return;
+                    return false;
                 }
             }
         }
+        return true;
     }
 
     private boolean isSinkReachable(String source, String sink) {
