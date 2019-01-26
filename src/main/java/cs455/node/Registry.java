@@ -27,10 +27,9 @@ public class Registry implements Node {
     private ServerThread serverThread;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private Map<String, DataSender> registeredNodes = new HashMap<>();
-    private static final int MAX_NODE_ID = 256; // TODO figure this out
+    private Overlay overlay;
 
     private Registry() {
-
     }
 
     private void start() {
@@ -206,13 +205,14 @@ public class Registry implements Node {
             input = scanner.next();
 
             if (input.startsWith("list-messaging-nodes")) {
-//                listMessagingNodes();
+                // TODO
             }
             else if (input.startsWith("list-weights")) {
                 // TODO
             }
             else if (input.startsWith("setup-overlay")) {
-                // TODO
+                int numConnections = Integer.parseInt(input.split(" ")[1]);
+                setupOverlay(numConnections);
             }
             else if (input.startsWith("send-overlay-link-weights")) {
                 // TODO
@@ -220,6 +220,30 @@ public class Registry implements Node {
             else if (input.startsWith("start")) {
                 // TODO
             }
+        }
+    }
+
+    private void setupOverlay(int cr) {
+        overlay = Overlay.of(registeredNodes.keySet(), cr);
+        if (!overlay.setup()) {
+            Utils.error("failed to generate the overlay");
+            return;
+        }
+
+        for (String node : registeredNodes.keySet()) {
+            executor.execute(() -> sendMessagingNodesList(node));
+        }
+    }
+
+    private void sendMessagingNodesList(String node) {
+        String[] nodes = overlay.getNodeConnections(node);
+        MessagingNodesList messagingNodesList = MessagingNodesList.of(nodes);
+        try {
+            registeredNodes.get(node).send(messagingNodesList.getBytes());
+            Utils.debug("sent: " + messagingNodesList);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

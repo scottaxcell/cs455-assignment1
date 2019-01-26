@@ -5,7 +5,7 @@ import cs455.util.Utils;
 import java.util.*;
 
 public class Overlay {
-    private int cr = 4; // default of 4
+    private int cr;
     private List<String> nodes = new ArrayList<>();
     private Map<String, List<String>> connections = new HashMap<>();
     private List<Link> links = new ArrayList<>();
@@ -24,9 +24,7 @@ public class Overlay {
             return false;
 
         constructLinearTopology();
-
-        for (String node : nodes)
-            connectNode(node);
+        connectNodesRandomly();
 
         if (!checkNumberOfLinks())
             return false;
@@ -36,6 +34,11 @@ public class Overlay {
             return false;
 
         return true;
+    }
+
+    private void connectNodesRandomly() {
+        for (String node : nodes)
+            connectNode(node);
     }
 
     private void constructLinearTopology() {
@@ -143,8 +146,14 @@ public class Overlay {
     }
 
     public String[] getNodeConnections(String node) {
+//        List<String> nodes = new ArrayList<>();
+//        for (Link link : links) {
+//            if (link.getSource().equals(node))
+//                nodes.add()
+//        }
         return links.stream()
             .filter(l -> l.getSource().equals(node))
+            .map(l -> l.getSink())
             .toArray(size -> new String[size]);
     }
 

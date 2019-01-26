@@ -81,9 +81,20 @@ public class MessagingNode implements Node {
             case Protocol.DEREGISTER_RESPONSE:
                 handleDeregisterResponse(message);
                 break;
+            case Protocol.MESSAGING_NODES_LIST:
+                handleMessagingNodesList(message);
             default:
                 throw new RuntimeException("received an unknown message");
         }
+    }
+
+    private void handleMessagingNodesList(Message message) {
+        if (!(message instanceof MessagingNodesList)) {
+            Utils.error("message of " + message.getClass() + " unexpected");
+            return;
+        }
+
+        // TODO initiate connections to all nodes
     }
 
     private void handleRegisterResponse(Message message) {

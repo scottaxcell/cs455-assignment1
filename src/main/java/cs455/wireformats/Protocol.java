@@ -5,4 +5,5 @@ public interface Protocol {
     int REGISTER_RESPONSE = 1;
     int DEREGISTER_REQUEST = 2;
     int DEREGISTER_RESPONSE = 3;
+    int MESSAGING_NODES_LIST = 4;
 }

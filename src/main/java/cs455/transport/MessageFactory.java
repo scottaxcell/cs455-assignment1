@@ -26,9 +26,30 @@ public class MessageFactory {
                 return createDeregisterRequest(data.length, dataInputStream, socket);
             case Protocol.DEREGISTER_RESPONSE:
                 return createDeregisterResponse(data.length, dataInputStream);
+            case Protocol.MESSAGING_NODES_LIST:
+                return createMessagingNodesList(data.length, dataInputStream);
             default:
                 throw new RuntimeException("received an unknown message");
         }
+    }
+
+    private static Message createMessagingNodesList(int dataLength, DataInputStream dataInputStream) throws IOException {
+        /**
+         * Message Type: MESSAGING_NODES_LIST
+         * Number of peer messaging nodes: X
+         * Messaging node1 Info
+         * Messaging node2 Info
+         * .....
+         * Messaging nodeX Info
+         *
+         * where nodeX Info: node_hostname:portnum
+         */
+        int numNodes = dataInputStream.readInt();
+        int nodesLength = dataLength - SIZE_OF_INT * 2;
+        byte[] nodesBytes = new byte[nodesLength];
+        dataInputStream.readFully(nodesBytes, 0, nodesLength);
+        String nodes = new String(nodesBytes);
+        return MessagingNodesList.of(nodes.split("\\n"));
     }
 
     private static Message createDeregisterResponse(int dataLength, DataInputStream dataInputStream) throws IOException {
