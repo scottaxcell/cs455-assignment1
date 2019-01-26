@@ -8,39 +8,62 @@ public class Overlay {
     private int cr = 4; // default of 4
     private List<String> nodes = new ArrayList<>();
     private Map<String, List<String>> connections = new HashMap<>();
-    private static final int NUM_RETRIES = 5;
+    private List<Link> links = new ArrayList<>();
 
-    private Overlay() {
+    private Overlay(Set<String> nodes, int cr) {
+        this.nodes.addAll(nodes);
+        this.cr = cr;
     }
 
-    public static Overlay of() {
-        return new Overlay();
+    public static Overlay of(Set<String> nodes, int cr) {
+        return new Overlay(nodes, cr);
     }
 
-    public boolean setup(String[] nodes, int cr) {
-        return setup(nodes, cr, 0);
-    }
-
-    private boolean setup(String[] nodes, int cr, int numRetries) {
-        if (numRetries >= NUM_RETRIES)
+    public boolean setup() {
+        if (!isConnectionRequirementValid(nodes.size(), cr))
             return false;
 
-        numRetries++;
-
-        this.connections = new HashMap<>();
-        this.nodes = Arrays.asList(nodes);
-        this.cr = cr;
+        constructLinearTopology();
 
         for (String node : nodes)
             connectNode(node);
 
         if (!checkNumberOfLinks())
-            return setup(nodes, cr, numRetries);
+            return false;
         if (!checkForPartition())
-            return setup(nodes, cr, numRetries);
+            return false;
         if (!checkNodeConnectsToItself())
-            return setup(nodes, cr, numRetries);
+            return false;
 
+        return true;
+    }
+
+    private void constructLinearTopology() {
+        for (int i = 0; i < nodes.size(); i++) {
+            String source = nodes.get(i);
+            if (i == nodes.size() - 1) {
+                // last node connects to first node
+                String sink = nodes.get(0);
+                connections.computeIfAbsent(source, l -> new ArrayList<>()).add(sink);
+                links.add(Link.of(source, sink));
+            }
+            else {
+                // connect to next node
+                String sink = nodes.get(i + 1);
+                connections.computeIfAbsent(source, l -> new ArrayList<>()).add(sink);
+                links.add(Link.of(source, sink));
+            }
+        }
+    }
+
+    private boolean isConnectionRequirementValid(int n, int k) {
+        // k-regular graph conditions
+        // n = k+1
+        // nk is even
+        if ((n < (k + 1)) || (((n * k) % 2) != 0)) {
+            Utils.error("overlay is not valid. k-regular graph conditions not met.");
+            return false;
+        }
         return true;
     }
 
@@ -55,28 +78,31 @@ public class Overlay {
         return true;
     }
 
-    private void connectNode(String node) {
+    private void connectNode(String source) {
+        // already created a linear topology so decrement by 1
+        int requiredNumConnections = cr - 1;
         int numConnections = 0;
-        for (int i = 1; i <= cr; i++) {
-            if (numConnections >= cr)
+        for (int i = 1; i <= requiredNumConnections; i++) {
+            if (numConnections >= requiredNumConnections)
                 return;
 
             // get random connection, if same node, try again
-            int nodeIndex = nodes.indexOf(node);
-            while (nodeIndex == nodes.indexOf(node))
+            int nodeIndex = nodes.indexOf(source);
+            while (nodeIndex == nodes.indexOf(source))
                 nodeIndex = getRandomNodeIndex();
 
             // check connection doesn't exist other way round
-            String otherNode = nodes.get(nodeIndex);
-            if (connections.containsKey(otherNode)) {
-                if (connections.get(otherNode).contains(node)) {
+            String sink = nodes.get(nodeIndex);
+            if (connections.containsKey(sink)) {
+                if (connections.get(sink).contains(source)) {
                     numConnections++;
-                    connections.computeIfAbsent(node, l -> new ArrayList<>()).add(otherNode);
+                    connections.computeIfAbsent(source, l -> new ArrayList<>()).add(sink);
                     continue;
                 }
             }
 
-            connections.computeIfAbsent(node, l -> new ArrayList<>()).add(otherNode);
+            connections.computeIfAbsent(source, l -> new ArrayList<>()).add(sink);
+            links.add(Link.of(source, sink));
             numConnections++;
         }
     }
@@ -114,6 +140,12 @@ public class Overlay {
 
     private int getRandomNodeIndex() {
         return new Random().nextInt(nodes.size());
+    }
+
+    public String[] getNodeConnections(String node) {
+        return links.stream()
+            .filter(l -> l.getSource().equals(node))
+            .toArray(size -> new String[size]);
     }
 
     private final class Dfs {
