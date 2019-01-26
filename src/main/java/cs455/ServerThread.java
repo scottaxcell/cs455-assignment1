@@ -3,6 +3,7 @@ package cs455;
 import cs455.node.Node;
 import cs455.util.Utils;
 
+import javax.sound.midi.Receiver;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
@@ -37,7 +38,7 @@ public class ServerThread extends Thread {
             while (!interrupted()) {
                 Socket incomingSocket = serverSocket.accept();
                 ReceiverThread receiverThread = ReceiverThread.of(incomingSocket, node);
-                receiverThreads.add(receiverThread);
+                addReceiverThread(receiverThread);
                 receiverThread.start();
                 // TODO should I use a thread pool here to limit how many threads are created?
             }
@@ -65,5 +66,9 @@ public class ServerThread extends Thread {
 
     public int getPort() {
         return port;
+    }
+
+    public void addReceiverThread(ReceiverThread receiverThread) {
+        receiverThreads.add(receiverThread);
     }
 }

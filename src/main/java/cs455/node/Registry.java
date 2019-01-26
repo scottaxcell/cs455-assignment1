@@ -66,7 +66,7 @@ public class Registry implements Node {
                 handleDeregisterRequest(message);
                 break;
             default:
-                throw new RuntimeException("received an unknown message");
+                throw new RuntimeException(String.format("received an unknown message with protocol %d", protocol));
         }
     }
 

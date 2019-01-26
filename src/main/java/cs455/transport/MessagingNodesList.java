@@ -59,6 +59,10 @@ public class MessagingNodesList implements Message {
         return data;
     }
 
+    public String[] getNodes() {
+        return nodes;
+    }
+
     @Override
     public String toString() {
         return "MessagingNodesList{" +

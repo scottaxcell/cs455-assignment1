@@ -11,6 +11,8 @@ import cs455.wireformats.Status;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,6 +25,8 @@ public class MessagingNode implements Node {
     private ReceiverThread registryReceiverThread;
     private DataSender registrySender;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private Map<String, DataSender> connectedNodes = new HashMap<>();
+
 
     private MessagingNode(String registryIp, int registryPort) {
         this.registryIp = registryIp;
@@ -83,8 +87,9 @@ public class MessagingNode implements Node {
                 break;
             case Protocol.MESSAGING_NODES_LIST:
                 handleMessagingNodesList(message);
+                break;
             default:
-                throw new RuntimeException("received an unknown message");
+                throw new RuntimeException(String.format("received an unknown message with protocol %d", protocol));
         }
     }
 
@@ -94,7 +99,27 @@ public class MessagingNode implements Node {
             return;
         }
 
-        // TODO initiate connections to all nodes
+        MessagingNodesList messagingNodesList = (MessagingNodesList) message;
+        Utils.debug("received: " + messagingNodesList);
+
+        for (String node : messagingNodesList.getNodes()) {
+            String[] split = node.split(":");
+            String ip = split[0];
+            int port = Integer.parseInt(split[1]);
+
+            try {
+                Socket socket = new Socket(ip, port);
+                DataSender dataSender = DataSender.of(socket);
+                ReceiverThread receiverThread = ReceiverThread.of(socket, this);
+                receiverThread.start();
+                serverThread.addReceiverThread(receiverThread);
+                connectedNodes.put(node, dataSender);
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        Utils.info(String.format("All connections are established. Number of connections: %d", connectedNodes.size()));
     }
 
     private void handleRegisterResponse(Message message) {
