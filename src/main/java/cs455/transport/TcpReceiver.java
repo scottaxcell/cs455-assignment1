@@ -8,20 +8,19 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-public class ReceiverThread extends Thread {
+public class TcpReceiver implements Runnable {
     private Socket socket;
     private DataInputStream dataInputStream;
     private Node node;
 
-    private ReceiverThread(Socket socket, Node node) throws IOException {
+    private TcpReceiver(Socket socket, Node node) throws IOException {
         this.socket = socket;
         this.node = node;
         dataInputStream = new DataInputStream(socket.getInputStream());
-        setName("Receiver");
     }
 
-    public static ReceiverThread of(Socket incomingSocket, Node node) throws IOException {
-        return new ReceiverThread(incomingSocket, node);
+    public static TcpReceiver of(Socket incomingSocket, Node node) throws IOException {
+        return new TcpReceiver(incomingSocket, node);
     }
 
     public Socket getSocket() {

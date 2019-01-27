@@ -1,7 +1,7 @@
 package cs455.node;
 
-import cs455.transport.DataSender;
-import cs455.transport.ServerThread;
+import cs455.transport.TcpSender;
+import cs455.transport.TcpServer;
 import cs455.util.Overlay;
 import cs455.util.Utils;
 import cs455.wireformats.*;
@@ -20,18 +20,18 @@ import java.util.regex.Pattern;
 public class Registry implements Node {
     public static final String LOOPBACK_IP = "127.0.0.1";
     private int port = 50700;
-    private ServerThread serverThread;
+    private TcpServer tcpServer;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
-    private Map<String, DataSender> registeredNodes = new HashMap<>();
+    private Map<String, TcpSender> registeredNodes = new HashMap<>();
     private Overlay overlay;
 
     private Registry() {
     }
 
     private void start() {
-        serverThread = ServerThread.of(port, this);
-        serverThread.start();
-
+        tcpServer = TcpServer.of(port, this);
+        Thread thread = new Thread(tcpServer);
+        thread.start();
         handleCmdLineInput();
     }
 
@@ -75,52 +75,52 @@ public class Registry implements Node {
         DeregisterRequest request = (DeregisterRequest) message;
         Utils.debug("received: " + request);
         Socket socket = request.getSocket();
-        DataSender dataSender = DataSender.of(socket);
+        TcpSender tcpSender = TcpSender.of(socket);
         String address = String.format("%s:%d", request.getIp(), request.getPort());
 
         if (!request.getIp().equals(socket.getInetAddress().getHostAddress())) {
             if (socket.getInetAddress().getHostAddress().equals(LOOPBACK_IP)) {
                 // handle scenario where messaging node exists on the same machine
                 if (!request.getIp().equals(InetAddress.getLocalHost().getHostAddress())) {
-                    sendMismatchedIpDeregisterResponse(dataSender);
+                    sendMismatchedIpDeregisterResponse(tcpSender);
                     return;
                 }
             }
             else {
-                sendMismatchedIpDeregisterResponse(dataSender);
+                sendMismatchedIpDeregisterResponse(tcpSender);
                 return;
             }
         }
 
         synchronized (registeredNodes) {
             if (!registeredNodes.containsKey(address)) {
-                sendNodeNotKnownDeregisteredResponse(dataSender);
+                sendNodeNotKnownDeregisteredResponse(tcpSender);
                 return;
             }
 
             registeredNodes.remove(address);
-            sendSuccessDeregisterResponse(dataSender);
+            sendSuccessDeregisterResponse(tcpSender);
         }
     }
 
-    private void sendSuccessDeregisterResponse(DataSender dataSender) {
+    private void sendSuccessDeregisterResponse(TcpSender tcpSender) {
         String info = String.format("Deregistration request successful. The number of messaging nodes currently constituting the overlay is (%s).", registeredNodes.size());
-        sendDeregisterResponse(dataSender, Status.SUCCESS, info);
+        sendDeregisterResponse(tcpSender, Status.SUCCESS, info);
     }
 
-    private void sendNodeNotKnownDeregisteredResponse(DataSender dataSender) {
-        sendDeregisterResponse(dataSender, Status.FAILURE, "Deregistration request failed. Node not previously registered.");
+    private void sendNodeNotKnownDeregisteredResponse(TcpSender tcpSender) {
+        sendDeregisterResponse(tcpSender, Status.FAILURE, "Deregistration request failed. Node not previously registered.");
     }
 
-    private void sendMismatchedIpDeregisterResponse(DataSender dataSender) {
-        sendDeregisterResponse(dataSender, Status.FAILURE, "Deregistration request failed. Mismatch in IP.");
+    private void sendMismatchedIpDeregisterResponse(TcpSender tcpSender) {
+        sendDeregisterResponse(tcpSender, Status.FAILURE, "Deregistration request failed. Mismatch in IP.");
     }
 
-    private void sendDeregisterResponse(DataSender dataSender, int status, String info) {
+    private void sendDeregisterResponse(TcpSender tcpSender, int status, String info) {
         DeregisterResponse response = DeregisterResponse.of(status, info);
         try {
-            dataSender.send(response.getBytes());
-            Utils.debug(String.format("sent [%s:%d]: %s", dataSender.getSocket().getRemoteSocketAddress(), dataSender.getSocket().getPort(), response));
+            tcpSender.send(response.getBytes());
+            Utils.debug(String.format("sent [%s:%d]: %s", tcpSender.getSocket().getRemoteSocketAddress(), tcpSender.getSocket().getPort(), response));
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -140,52 +140,52 @@ public class Registry implements Node {
         Utils.debug(socket.getInetAddress() + ":" + socket.getPort());
         Utils.debug(socket.getLocalAddress() + ":" + socket.getLocalPort());
         Utils.debug(socket.getRemoteSocketAddress());
-        DataSender dataSender = DataSender.of(socket);
+        TcpSender tcpSender = TcpSender.of(socket);
         String address = String.format("%s:%d", request.getIp(), request.getPort());
 
         if (!request.getIp().equals(socket.getInetAddress().getHostAddress())) {
             if (socket.getInetAddress().getHostAddress().equals(LOOPBACK_IP)) {
                 // handle scenario where messaging node exists on the same machine
                 if (!request.getIp().equals(InetAddress.getLocalHost().getHostAddress())) {
-                    sendMismatchedIpRegisterResponse(dataSender);
+                    sendMismatchedIpRegisterResponse(tcpSender);
                     return;
                 }
             }
             else {
-                sendMismatchedIpRegisterResponse(dataSender);
+                sendMismatchedIpRegisterResponse(tcpSender);
                 return;
             }
         }
 
         synchronized (registeredNodes) {
             if (registeredNodes.containsKey(address)) {
-                sendNodeAlreadyRegisteredResponse(dataSender);
+                sendNodeAlreadyRegisteredResponse(tcpSender);
                 return;
             }
 
-            registeredNodes.put(address, dataSender);
-            sendSuccessRegisterResponse(dataSender);
+            registeredNodes.put(address, tcpSender);
+            sendSuccessRegisterResponse(tcpSender);
         }
     }
 
-    private void sendNodeAlreadyRegisteredResponse(DataSender dataSender) {
-        sendRegisterResponse(dataSender, Status.FAILURE, "Registration request failed. Node previously registered.");
+    private void sendNodeAlreadyRegisteredResponse(TcpSender tcpSender) {
+        sendRegisterResponse(tcpSender, Status.FAILURE, "Registration request failed. Node previously registered.");
     }
 
-    private void sendSuccessRegisterResponse(DataSender dataSender) {
+    private void sendSuccessRegisterResponse(TcpSender tcpSender) {
         String info = String.format("Registration request successful. The number of messaging nodes currently constituting the overlay is (%s).", registeredNodes.size());
-        sendRegisterResponse(dataSender, Status.SUCCESS, info);
+        sendRegisterResponse(tcpSender, Status.SUCCESS, info);
     }
 
-    private void sendMismatchedIpRegisterResponse(DataSender dataSender) {
-        sendRegisterResponse(dataSender, Status.FAILURE, "Registration request failed. Mismatch in IP.");
+    private void sendMismatchedIpRegisterResponse(TcpSender tcpSender) {
+        sendRegisterResponse(tcpSender, Status.FAILURE, "Registration request failed. Mismatch in IP.");
     }
 
-    private void sendRegisterResponse(DataSender dataSender, int status, String info) {
+    private void sendRegisterResponse(TcpSender tcpSender, int status, String info) {
         RegisterResponse response = RegisterResponse.of(status, info);
         try {
-            dataSender.send(response.getBytes());
-            Utils.debug(String.format("sent [%s:%d]: %s", dataSender.getSocket().getRemoteSocketAddress(), dataSender.getSocket().getPort(), response));
+            tcpSender.send(response.getBytes());
+            Utils.debug(String.format("sent [%s:%d]: %s", tcpSender.getSocket().getRemoteSocketAddress(), tcpSender.getSocket().getPort(), response));
         }
         catch (IOException e) {
             e.printStackTrace();

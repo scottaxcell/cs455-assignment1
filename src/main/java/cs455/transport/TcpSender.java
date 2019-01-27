@@ -4,17 +4,17 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-public class DataSender {
+public class TcpSender {
     private Socket socket;
     private DataOutputStream dataOutputStream;
 
-    private DataSender(Socket socket) throws IOException {
+    private TcpSender(Socket socket) throws IOException {
         this.socket = socket;
         dataOutputStream = new DataOutputStream(socket.getOutputStream());
     }
 
-    public static DataSender of(Socket socket) throws IOException {
-        return new DataSender(socket);
+    public static TcpSender of(Socket socket) throws IOException {
+        return new TcpSender(socket);
     }
 
     public synchronized void send(byte[] data) throws IOException {
