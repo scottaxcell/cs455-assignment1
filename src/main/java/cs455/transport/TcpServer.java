@@ -7,18 +7,23 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class TcpServer implements Runnable {
-    private String ip;
-    private int port;
-    private List<TcpReceiver> tcpReceivers = new ArrayList<>();
+    private ServerSocket serverSocket;
     private Node node;
 
     private TcpServer(int port, Node node) {
-        this.port = port;
         this.node = node;
+        try {
+            serverSocket = new ServerSocket(port);
+            Utils.debug("TcpServer started on " + getIp() + ":" + getPort());
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static TcpServer of(int port, Node node) {
@@ -28,48 +33,21 @@ public class TcpServer implements Runnable {
     @Override
     public void run() {
         try {
-            ServerSocket serverSocket = new ServerSocket(port);
-            ip = Inet4Address.getLocalHost().getHostAddress();
-            port = serverSocket.getLocalPort();
-            Utils.debug("TcpServer started on " + getIp() + ":" + getPort());
-            Utils.debug("TcpServer started on " + serverSocket.getInetAddress() + ":" + serverSocket.getLocalPort());
-            Utils.debug("TcpServer started on " + serverSocket.getLocalSocketAddress());
-
-            while (!Thread.currentThread().interrupted()) {
-                Socket incomingSocket = serverSocket.accept();
-                TcpReceiver tcpReceiver = TcpReceiver.of(incomingSocket, node);
-                Thread thread = new Thread(tcpReceiver);
-                thread.start();
-                addReceiverThread(tcpReceiver);
-                // TODO should I use a thread pool here to limit how many threads are created?
+            while (!Thread.interrupted()) {
+                Socket socket = serverSocket.accept();
+                TcpConnection tcpConnection = TcpConnection.of(socket, node);
             }
-
-            tcpReceivers.stream()
-                .forEach(this::closeReceiverThreadSocket);
         }
         catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void closeReceiverThreadSocket(TcpReceiver tcpReceiver) {
-        try {
-            tcpReceiver.getSocket().close();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public String getIp() {
-        return ip;
+    public String getIp() throws UnknownHostException {
+        return Inet4Address.getLocalHost().getHostAddress();
     }
 
     public int getPort() {
-        return port;
-    }
-
-    public void addReceiverThread(TcpReceiver tcpReceiver) {
-        tcpReceivers.add(tcpReceiver);
+        return serverSocket.getLocalPort();
     }
 }

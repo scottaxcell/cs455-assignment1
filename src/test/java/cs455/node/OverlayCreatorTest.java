@@ -1,13 +1,13 @@
 package cs455.node;
 
-import cs455.util.Overlay;
+import cs455.util.OverlayCreator;
 import org.junit.jupiter.api.Assertions;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-class OverlayTest {
-    private static Overlay overlay;
+class OverlayCreatorTest {
+    private static OverlayCreator overlayCreator;
 
     @org.junit.jupiter.api.BeforeEach
     void setUp() {
@@ -20,8 +20,8 @@ class OverlayTest {
 
         for (int i = 0; i < 10000; i++) {
             for (int j = 1; j < 10; j++) {
-                overlay = Overlay.of(Stream.of(nodes).collect(Collectors.toSet()), j);
-                Assertions.assertTrue(overlay.setup());
+                overlayCreator = OverlayCreator.of(Stream.of(nodes).collect(Collectors.toSet()), j);
+                Assertions.assertTrue(overlayCreator.setup());
             }
         }
     }

@@ -20,8 +20,6 @@ public class TcpConnection {
             thread.start();
 
             tcpSender = TcpSender.of(socket);
-            thread = new Thread(tcpReceiver);
-            thread.start();
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -43,5 +41,9 @@ public class TcpConnection {
         catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public int getPort() {
+        return socket.getLocalPort();
     }
 }

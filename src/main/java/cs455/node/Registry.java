@@ -2,13 +2,14 @@ package cs455.node;
 
 import cs455.transport.TcpSender;
 import cs455.transport.TcpServer;
-import cs455.util.Overlay;
+import cs455.util.OverlayCreator;
 import cs455.util.Utils;
 import cs455.wireformats.*;
 
 import java.io.IOException;
-import java.net.InetAddress;
+import java.net.Inet4Address;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -23,7 +24,7 @@ public class Registry implements Node {
     private TcpServer tcpServer;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private Map<String, TcpSender> registeredNodes = new HashMap<>();
-    private Overlay overlay;
+    private OverlayCreator overlayCreator;
 
     private Registry() {
     }
@@ -81,7 +82,7 @@ public class Registry implements Node {
         if (!request.getIp().equals(socket.getInetAddress().getHostAddress())) {
             if (socket.getInetAddress().getHostAddress().equals(LOOPBACK_IP)) {
                 // handle scenario where messaging node exists on the same machine
-                if (!request.getIp().equals(InetAddress.getLocalHost().getHostAddress())) {
+                if (!request.getIp().equals(getIp())) {
                     sendMismatchedIpDeregisterResponse(tcpSender);
                     return;
                 }
@@ -103,8 +104,12 @@ public class Registry implements Node {
         }
     }
 
+    private String getIp() throws UnknownHostException {
+        return Inet4Address.getLocalHost().getHostAddress();
+    }
+
     private void sendSuccessDeregisterResponse(TcpSender tcpSender) {
-        String info = String.format("Deregistration request successful. The number of messaging nodes currently constituting the overlay is (%s).", registeredNodes.size());
+        String info = String.format("Deregistration request successful. The number of messaging nodes currently constituting the overlayCreator is (%s).", registeredNodes.size());
         sendDeregisterResponse(tcpSender, Status.SUCCESS, info);
     }
 
@@ -136,17 +141,13 @@ public class Registry implements Node {
         RegisterRequest request = (RegisterRequest) message;
         Utils.debug("received: " + request);
         Socket socket = request.getSocket();
-        Utils.debug(request.getIp() + ":" + request.getPort());
-        Utils.debug(socket.getInetAddress() + ":" + socket.getPort());
-        Utils.debug(socket.getLocalAddress() + ":" + socket.getLocalPort());
-        Utils.debug(socket.getRemoteSocketAddress());
         TcpSender tcpSender = TcpSender.of(socket);
         String address = String.format("%s:%d", request.getIp(), request.getPort());
 
         if (!request.getIp().equals(socket.getInetAddress().getHostAddress())) {
             if (socket.getInetAddress().getHostAddress().equals(LOOPBACK_IP)) {
                 // handle scenario where messaging node exists on the same machine
-                if (!request.getIp().equals(InetAddress.getLocalHost().getHostAddress())) {
+                if (!request.getIp().equals(getIp())) {
                     sendMismatchedIpRegisterResponse(tcpSender);
                     return;
                 }
@@ -173,7 +174,7 @@ public class Registry implements Node {
     }
 
     private void sendSuccessRegisterResponse(TcpSender tcpSender) {
-        String info = String.format("Registration request successful. The number of messaging nodes currently constituting the overlay is (%s).", registeredNodes.size());
+        String info = String.format("Registration request successful. The number of messaging nodes currently constituting the overlayCreator is (%s).", registeredNodes.size());
         sendRegisterResponse(tcpSender, Status.SUCCESS, info);
     }
 
@@ -210,11 +211,11 @@ public class Registry implements Node {
             else if (input.startsWith("list-weights")) {
                 // TODO
             }
-            else if (input.startsWith("setup-overlay")) {
+            else if (input.startsWith("setup-overlayCreator")) {
                 int numConnections = Integer.parseInt(input.split(" ")[1]);
                 setupOverlay(numConnections);
             }
-            else if (input.startsWith("send-overlay-link-weights")) {
+            else if (input.startsWith("send-overlayCreator-link-weights")) {
                 // TODO
             }
             else if (input.startsWith("start")) {
@@ -224,9 +225,9 @@ public class Registry implements Node {
     }
 
     private void setupOverlay(int cr) {
-        overlay = Overlay.of(registeredNodes.keySet(), cr);
-        if (!overlay.setup()) {
-            Utils.error("failed to generate the overlay");
+        overlayCreator = OverlayCreator.of(registeredNodes.keySet(), cr);
+        if (!overlayCreator.setup()) {
+            Utils.error("failed to generate the overlayCreator");
             return;
         }
 
@@ -236,7 +237,7 @@ public class Registry implements Node {
     }
 
     private void sendMessagingNodesList(String node) {
-        String[] nodes = overlay.getNodeConnections(node);
+        String[] nodes = overlayCreator.getNodeConnections(node);
         MessagingNodesList messagingNodesList = MessagingNodesList.of(nodes);
         try {
             registeredNodes.get(node).send(messagingNodesList.getBytes());

@@ -5,21 +5,21 @@ import cs455.node.Link;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Overlay {
+public class OverlayCreator {
     private int cr;
     private List<String> nodes = new ArrayList<>();
     private Map<String, List<String>> connections = new HashMap<>();
     private List<Link> links = new ArrayList<>();
 
-    private Overlay(Set<String> nodes, int cr) {
+    private OverlayCreator(Set<String> nodes, int cr) {
         this.nodes.addAll(nodes);
         nodes.stream()
             .forEach(n -> connections.computeIfAbsent(n, l -> new ArrayList<>()));
         this.cr = cr;
     }
 
-    public static Overlay of(Set<String> nodes, int cr) {
-        return new Overlay(nodes, cr);
+    public static OverlayCreator of(Set<String> nodes, int cr) {
+        return new OverlayCreator(nodes, cr);
     }
 
     public boolean setup() {
@@ -250,7 +250,7 @@ public class Overlay {
 
      @Override
     public String toString() {
-        return "Overlay{" +
+        return "OverlayCreator{" +
             "cr=" + cr +
             ", nodes=" + nodes +
             ", connections=" + connections +
