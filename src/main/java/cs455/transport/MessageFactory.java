@@ -28,9 +28,25 @@ public class MessageFactory {
                 return createDeregisterResponse(data.length, dataInputStream);
             case Protocol.MESSAGING_NODES_LIST:
                 return createMessagingNodesList(data.length, dataInputStream);
+            case Protocol.HANDSHAKE:
+                return createHandshake(data.length, dataInputStream, socket);
             default:
                 throw new RuntimeException("received an unknown message");
         }
+    }
+
+    private static Handshake createHandshake(int dataLength, DataInputStream dataInputStream, Socket socket) throws IOException {
+        /**
+         * Message Type (int): HANDSHAKE
+         * IP address (String)
+         * Port number (int)
+         */
+        int ipLength = dataLength - SIZE_OF_INT * 2;
+        byte[] ipBytes = new byte[ipLength];
+        dataInputStream.readFully(ipBytes, 0, ipLength);
+        String ip = new String(ipBytes);
+        int port = dataInputStream.readInt();
+        return Handshake.of(ip, port, socket);
     }
 
     private static Message createMessagingNodesList(int dataLength, DataInputStream dataInputStream) throws IOException {

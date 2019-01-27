@@ -34,28 +34,16 @@ public class ReceiverThread extends Thread {
     @Override
     public void run() {
         while (socket != null) {
-            byte[] data = null;
             try {
                 int dataLength = dataInputStream.readInt();
-                data = new byte[dataLength];
+                byte[] data = new byte[dataLength];
                 dataInputStream.readFully(data, 0, dataLength);
-            } catch (EOFException e) {
-                Utils.debug(e.getMessage());
-                break;
-            } catch (SocketException e) {
-                Utils.debug(e.getMessage());
-                break;
-            } catch (IOException e) {
-                e.printStackTrace();
+                Message message = MessageFactory.getMessageFromData(data, socket);
+                node.onMessage(message);
             }
-
-            if (data != null) {
-                try {
-                    Message message = MessageFactory.getMessageFromData(data, getSocket());
-                    node.onMessage(message);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            catch (IOException e) {
+                e.printStackTrace();
+                break;
             }
         }
     }

@@ -88,8 +88,28 @@ public class MessagingNode implements Node {
             case Protocol.MESSAGING_NODES_LIST:
                 handleMessagingNodesList(message);
                 break;
+            case Protocol.HANDSHAKE:
+                handleHandshake(message);
+                break;
             default:
                 throw new RuntimeException(String.format("received an unknown message with protocol %d", protocol));
+        }
+    }
+
+    private void handleHandshake(Message message) {
+        if (!(message instanceof Handshake)) {
+            Utils.error("message of " + message.getClass() + " unexpected");
+            return;
+        }
+        Handshake handshake = (Handshake) message;
+        Utils.debug("received: " + handshake);
+        try {
+            Socket socket = handshake.getSocket();
+            String address = String.format("%s:%d", handshake.getIp(), handshake.getPort());
+            DataSender dataSender = DataSender.of(socket);
+            connectedNodes.put(address, dataSender);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -114,6 +134,10 @@ public class MessagingNode implements Node {
                 receiverThread.start();
                 serverThread.addReceiverThread(receiverThread);
                 connectedNodes.put(node, dataSender);
+                Handshake handshake = Handshake.of(serverThread.getIp(), serverThread.getPort(), receiverThread.getSocket());
+                dataSender.send(handshake.getBytes());
+                Utils.debug(String.format("sent [%s:%d]: %s", dataSender.getSocket().getRemoteSocketAddress(), dataSender.getSocket().getPort(), handshake));
+
             }
             catch (IOException e) {
                 e.printStackTrace();

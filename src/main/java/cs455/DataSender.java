@@ -23,4 +23,8 @@ public class DataSender {
         dataOutputStream.write(data, 0, dataLength);
         dataOutputStream.flush();
     }
+
+    public Socket getSocket() {
+        return socket;
+    }
 }

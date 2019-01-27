@@ -124,7 +124,7 @@ public class Registry implements Node {
         DeregisterResponse response = DeregisterResponse.of(status, info);
         try {
             dataSender.send(response.getBytes());
-            Utils.debug("sent: " + response);
+            Utils.debug(String.format("sent [%s:%d]: %s", dataSender.getSocket().getRemoteSocketAddress(), dataSender.getSocket().getPort(), response));
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -140,6 +140,10 @@ public class Registry implements Node {
         RegisterRequest request = (RegisterRequest) message;
         Utils.debug("received: " + request);
         Socket socket = request.getSocket();
+        Utils.debug(request.getIp() + ":" + request.getPort());
+        Utils.debug(socket.getInetAddress() + ":" + socket.getPort());
+        Utils.debug(socket.getLocalAddress() + ":" + socket.getLocalPort());
+        Utils.debug(socket.getRemoteSocketAddress());
         DataSender dataSender = DataSender.of(socket);
         String address = String.format("%s:%d", request.getIp(), request.getPort());
 
@@ -185,7 +189,7 @@ public class Registry implements Node {
         RegisterResponse response = RegisterResponse.of(status, info);
         try {
             dataSender.send(response.getBytes());
-            Utils.debug("sent: " + response);
+            Utils.debug(String.format("sent [%s:%d]: %s", dataSender.getSocket().getRemoteSocketAddress(), dataSender.getSocket().getPort(), response));
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -240,7 +244,7 @@ public class Registry implements Node {
         MessagingNodesList messagingNodesList = MessagingNodesList.of(nodes);
         try {
             registeredNodes.get(node).send(messagingNodesList.getBytes());
-            Utils.debug("sent: " + messagingNodesList);
+            Utils.debug(String.format("sent [%s:%d]: %s", registeredNodes.get(node).getSocket().getRemoteSocketAddress(), registeredNodes.get(node).getSocket().getPort(), messagingNodesList));
         }
         catch (IOException e) {
             e.printStackTrace();
