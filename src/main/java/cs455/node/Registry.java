@@ -1,24 +1,20 @@
 package cs455.node;
 
-import cs455.DataSender;
-import cs455.ServerThread;
-import cs455.transport.*;
+import cs455.transport.DataSender;
+import cs455.transport.ServerThread;
+import cs455.util.Overlay;
 import cs455.util.Utils;
-import cs455.wireformats.Protocol;
-import cs455.wireformats.Status;
+import cs455.wireformats.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 
 public class Registry implements Node {

@@ -1,4 +1,4 @@
-package cs455;
+package cs455.transport;
 
 import java.io.DataOutputStream;
 import java.io.IOException;

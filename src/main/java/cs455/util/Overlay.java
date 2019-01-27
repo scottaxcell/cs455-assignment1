@@ -1,6 +1,6 @@
-package cs455.node;
+package cs455.util;
 
-import cs455.util.Utils;
+import cs455.node.Link;
 
 import java.util.*;
 import java.util.stream.Collectors;

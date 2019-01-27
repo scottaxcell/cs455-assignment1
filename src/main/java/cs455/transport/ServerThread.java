@@ -1,9 +1,8 @@
-package cs455;
+package cs455.transport;
 
 import cs455.node.Node;
 import cs455.util.Utils;
 
-import javax.sound.midi.Receiver;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.ServerSocket;

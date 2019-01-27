@@ -1,12 +1,10 @@
 package cs455.node;
 
-import cs455.DataSender;
-import cs455.ReceiverThread;
-import cs455.ServerThread;
-import cs455.transport.*;
+import cs455.transport.DataSender;
+import cs455.transport.ReceiverThread;
+import cs455.transport.ServerThread;
 import cs455.util.Utils;
-import cs455.wireformats.Protocol;
-import cs455.wireformats.Status;
+import cs455.wireformats.*;
 
 import java.io.IOException;
 import java.net.Inet4Address;

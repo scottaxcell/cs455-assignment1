@@ -1,6 +1,4 @@
-package cs455.transport;
-
-import cs455.wireformats.Protocol;
+package cs455.wireformats;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;

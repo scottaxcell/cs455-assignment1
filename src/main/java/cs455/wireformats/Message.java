@@ -1,4 +1,4 @@
-package cs455.transport;
+package cs455.wireformats;
 
 import java.io.IOException;
 

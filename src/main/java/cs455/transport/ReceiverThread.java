@@ -1,15 +1,12 @@
-package cs455;
+package cs455.transport;
 
 import cs455.node.Node;
-import cs455.transport.Message;
-import cs455.transport.MessageFactory;
-import cs455.util.Utils;
+import cs455.wireformats.Message;
+import cs455.wireformats.MessageFactory;
 
 import java.io.DataInputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
-import java.net.SocketException;
 
 public class ReceiverThread extends Thread {
     private Socket socket;
