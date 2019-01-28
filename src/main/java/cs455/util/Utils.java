@@ -1,5 +1,7 @@
 package cs455.util;
 
+import java.util.Random;
+
 public class Utils {
     public static void out(Object o) {
         System.out.print(o);
@@ -19,5 +21,9 @@ public class Utils {
 
     public static byte intToByte(int i) {
         return (byte) i;
+    }
+
+    public static int generateRandomWeight() {
+        return new Random().nextInt(10) + 1;
     }
 }

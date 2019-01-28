@@ -1,7 +1,6 @@
-package cs455.node;
+package cs455.util;
 
 import java.util.Objects;
-import java.util.Random;
 
 public class Link {
     private String source;

@@ -1,9 +1,8 @@
 package cs455.util;
 
-import cs455.node.Link;
-
 import java.util.*;
-import java.util.stream.Collectors;
+
+import static cs455.util.Utils.generateRandomWeight;
 
 public class OverlayCreator {
     private int cr;
@@ -45,11 +44,11 @@ public class OverlayCreator {
         }
         Utils.out("\nCONNECTIONS:\n");
         for (Map.Entry<String, List<String>> entry : connections.entrySet()) {
-            Utils.out(entry.getKey()+"\n");
+            Utils.out(entry.getKey() + "\n");
             List<String> sinks = entry.getValue();
             Collections.sort(sinks);
             for (String sink : sinks) {
-                Utils.out("  " + sink +"\n");
+                Utils.out("  " + sink + "\n");
             }
         }
         Utils.out("\nLINKS:\n");
@@ -120,7 +119,7 @@ public class OverlayCreator {
         return i % 2 == 0;
     }
 
-     private void constructLinearTopology() {
+    private void constructLinearTopology() {
         for (int i = 0; i < nodes.size(); i++) {
             String source = nodes.get(i);
             if (i == nodes.size() - 1) {
@@ -215,9 +214,6 @@ public class OverlayCreator {
             .toArray(size -> new String[size]);
     }
 
-    private int generateRandomWeight() {
-        return new Random().nextInt(10) + 1;
-    }
 
     private final class Dfs {
         private Queue<String> queue = new ArrayDeque<>();
@@ -242,7 +238,7 @@ public class OverlayCreator {
         }
     }
 
-     @Override
+    @Override
     public String toString() {
         return "OverlayCreator{" +
             "cr=" + cr +

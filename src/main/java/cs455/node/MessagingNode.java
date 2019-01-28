@@ -1,7 +1,6 @@
 package cs455.node;
 
 import cs455.transport.TcpConnection;
-import cs455.transport.TcpSender;
 import cs455.transport.TcpServer;
 import cs455.util.Utils;
 import cs455.wireformats.*;
@@ -51,9 +50,11 @@ public class MessagingNode implements Node {
             Thread.sleep(500);
             RegisterRequest request = RegisterRequest.of(getIp(), tcpServer.getPort(), registryTcpConnection.getSocket());
             registryTcpConnection.send(request.getBytes());
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -62,7 +63,8 @@ public class MessagingNode implements Node {
         try {
             Socket socket = new Socket(registryIp, registryPort);
             registryTcpConnection = TcpConnection.of(socket, this);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -211,7 +213,8 @@ public class MessagingNode implements Node {
             DeregisterRequest request = DeregisterRequest.of(getIp(), tcpServer.getPort(), registryTcpConnection.getSocket());
             registryTcpConnection.send(request.getBytes());
             Utils.debug(String.format("sent [%s]: %s", registryTcpConnection.getSocket().getRemoteSocketAddress(), request));
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
     }

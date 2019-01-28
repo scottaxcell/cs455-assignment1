@@ -1,11 +1,11 @@
 package cs455.util;
 
+import org.junit.Test;
+
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
 
 public class OverlayCreatorTest {
 
