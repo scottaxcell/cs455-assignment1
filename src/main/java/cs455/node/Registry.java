@@ -82,7 +82,7 @@ public class Registry implements Node {
         if (!request.getIp().equals(socket.getInetAddress().getHostAddress())) {
             if (socket.getInetAddress().getHostAddress().equals(LOOPBACK_IP)) {
                 // handle scenario where messaging node exists on the same machine
-                if (!request.getIp().equals(getIp())) {
+                if (!request.getIp().equals(tcpServer.getIp())) {
                     sendMismatchedIpDeregisterResponse(tcpSender);
                     return;
                 }
@@ -102,10 +102,6 @@ public class Registry implements Node {
             registeredNodes.remove(address);
             sendSuccessDeregisterResponse(tcpSender);
         }
-    }
-
-    private String getIp() throws UnknownHostException {
-        return Inet4Address.getLocalHost().getHostAddress();
     }
 
     private void sendSuccessDeregisterResponse(TcpSender tcpSender) {
@@ -147,7 +143,7 @@ public class Registry implements Node {
         if (!request.getIp().equals(socket.getInetAddress().getHostAddress())) {
             if (socket.getInetAddress().getHostAddress().equals(LOOPBACK_IP)) {
                 // handle scenario where messaging node exists on the same machine
-                if (!request.getIp().equals(getIp())) {
+                if (!request.getIp().equals(tcpServer.getIp())) {
                     sendMismatchedIpRegisterResponse(tcpSender);
                     return;
                 }

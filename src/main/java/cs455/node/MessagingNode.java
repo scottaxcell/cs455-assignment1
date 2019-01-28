@@ -7,6 +7,7 @@ import cs455.wireformats.*;
 
 import java.io.IOException;
 import java.net.Inet4Address;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -48,7 +49,7 @@ public class MessagingNode implements Node {
         // TODO appears tcpServer is not up and running at this point, need to wait for it
         try {
             Thread.sleep(500);
-            RegisterRequest request = RegisterRequest.of(getIp(), tcpServer.getPort(), registryTcpConnection.getSocket());
+            RegisterRequest request = RegisterRequest.of(tcpServer.getIp(), tcpServer.getPort(), registryTcpConnection.getSocket());
             registryTcpConnection.send(request.getBytes());
         }
         catch (IOException e) {
@@ -148,7 +149,7 @@ public class MessagingNode implements Node {
                 Socket socket = new Socket(ip, port);
                 TcpConnection tcpConnection = TcpConnection.of(socket, this);
                 connectedNodes.put(node, tcpConnection);
-                Handshake handshake = Handshake.of(getIp(), tcpServer.getPort(), tcpConnection.getSocket());
+                Handshake handshake = Handshake.of(tcpServer.getIp(), tcpServer.getPort(), tcpConnection.getSocket());
                 tcpConnection.send(handshake.getBytes());
                 Utils.debug(String.format("sent [%s]: %s", tcpConnection.getSocket().getRemoteSocketAddress(), handshake));
             }
@@ -210,17 +211,13 @@ public class MessagingNode implements Node {
 
     private void sendDeregistrationRequest() {
         try {
-            DeregisterRequest request = DeregisterRequest.of(getIp(), tcpServer.getPort(), registryTcpConnection.getSocket());
+            DeregisterRequest request = DeregisterRequest.of(tcpServer.getIp(), tcpServer.getPort(), registryTcpConnection.getSocket());
             registryTcpConnection.send(request.getBytes());
             Utils.debug(String.format("sent [%s]: %s", registryTcpConnection.getSocket().getRemoteSocketAddress(), request));
         }
         catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private String getIp() throws UnknownHostException {
-        return Inet4Address.getLocalHost().getHostAddress();
     }
 
     private static void printHelpAndExit() {

@@ -42,7 +42,7 @@ public class TcpServer implements Runnable {
     }
 
     public String getIp() throws UnknownHostException {
-        return Inet4Address.getLocalHost().getHostAddress();
+        return serverSocket.getInetAddress().getLocalHost().getHostName();
     }
 
     public int getPort() {
