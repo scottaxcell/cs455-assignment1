@@ -23,8 +23,7 @@ public class MessagingNode implements Node {
     private TcpConnection registryTcpConnection;
     private TcpServer tcpServer;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
-    private Map<String, TcpSender> connectedNodes = new HashMap<>();
-
+    private Map<String, TcpConnection> connectedNodes = new HashMap<>();
 
     private MessagingNode(String registryIp, int registryPort) {
         this.registryIp = registryIp;
@@ -98,16 +97,13 @@ public class MessagingNode implements Node {
             Utils.error("message of " + message.getClass() + " unexpected");
             return;
         }
+
         Handshake handshake = (Handshake) message;
         Utils.debug("received: " + handshake);
-        try {
-            Socket socket = handshake.getSocket();
-            String address = String.format("%s:%d", handshake.getIp(), handshake.getPort());
-            TcpSender tcpSender = TcpSender.of(socket);
-            connectedNodes.put(address, tcpSender);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Socket socket = handshake.getSocket();
+        String address = String.format("%s:%d", handshake.getIp(), handshake.getPort());
+        TcpConnection tcpConnection = TcpConnection.of(socket, this);
+        connectedNodes.put(address, tcpConnection);
     }
 
     private void handleMessagingNodesList(Message message) {
@@ -124,23 +120,17 @@ public class MessagingNode implements Node {
             String ip = split[0];
             int port = Integer.parseInt(split[1]);
 
-//            try {
-//                // TODO connectionfy!
-//                Socket socket = new Socket(ip, port);
-//                TcpSender tcpSender = TcpSender.of(socket);
-//                TcpReceiver tcpReceiver = TcpReceiver.of(socket, this);
-//                Thread thread = new Thread(tcpReceiver);
-//                thread.start();
-//                tcpServer.addReceiverThread(tcpReceiver);
-//                connectedNodes.put(node, tcpSender);
-//                Handshake handshake = Handshake.of(tcpServer.getIp(), tcpServer.getPort(), tcpReceiver.getSocket());
-//                tcpSender.send(handshake.getBytes());
-//                Utils.debug(String.format("sent [%s:%d]: %s", tcpSender.getSocket().getRemoteSocketAddress(), tcpSender.getSocket().getPort(), handshake));
-//
-//            }
-//            catch (IOException e) {
-//                e.printStackTrace();
-//            }
+            try {
+                Socket socket = new Socket(ip, port);
+                TcpConnection tcpConnection = TcpConnection.of(socket, this);
+                connectedNodes.put(node, tcpConnection);
+                Handshake handshake = Handshake.of(getIp(), tcpServer.getPort(), tcpConnection.getSocket());
+                tcpConnection.send(handshake.getBytes());
+                Utils.debug(String.format("sent [%s]: %s", tcpConnection.getSocket().getRemoteSocketAddress(), handshake));
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         Utils.info(String.format("All connections are established. Number of connections: %d", connectedNodes.size()));
     }
@@ -198,7 +188,7 @@ public class MessagingNode implements Node {
         try {
             DeregisterRequest request = DeregisterRequest.of(getIp(), tcpServer.getPort(), registryTcpConnection.getSocket());
             registryTcpConnection.send(request.getBytes());
-            Utils.debug(String.format("sent [%s:%d]: %s", registryTcpConnection.getSocket().getRemoteSocketAddress(), registryTcpConnection.getSocket().getPort(), request));
+            Utils.debug(String.format("sent [%s]: %s", registryTcpConnection.getSocket().getRemoteSocketAddress(), request));
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -125,7 +125,7 @@ public class Registry implements Node {
         DeregisterResponse response = DeregisterResponse.of(status, info);
         try {
             tcpSender.send(response.getBytes());
-            Utils.debug(String.format("sent [%s:%d]: %s", tcpSender.getSocket().getRemoteSocketAddress(), tcpSender.getSocket().getPort(), response));
+            Utils.debug(String.format("sent [%s]: %s", tcpSender.getSocket().getRemoteSocketAddress(), response));
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -186,7 +186,7 @@ public class Registry implements Node {
         RegisterResponse response = RegisterResponse.of(status, info);
         try {
             tcpSender.send(response.getBytes());
-            Utils.debug(String.format("sent [%s:%d]: %s", tcpSender.getSocket().getRemoteSocketAddress(), tcpSender.getSocket().getPort(), response));
+            Utils.debug(String.format("sent [%s]: %s", tcpSender.getSocket().getRemoteSocketAddress(), response));
         }
         catch (IOException e) {
             e.printStackTrace();
@@ -211,11 +211,11 @@ public class Registry implements Node {
             else if (input.startsWith("list-weights")) {
                 // TODO
             }
-            else if (input.startsWith("setup-overlayCreator")) {
+            else if (input.startsWith("setup-overlay")) {
                 int numConnections = Integer.parseInt(input.split(" ")[1]);
                 setupOverlay(numConnections);
             }
-            else if (input.startsWith("send-overlayCreator-link-weights")) {
+            else if (input.startsWith("send-overlay-link-weights")) {
                 // TODO
             }
             else if (input.startsWith("start")) {
@@ -227,7 +227,7 @@ public class Registry implements Node {
     private void setupOverlay(int cr) {
         overlayCreator = OverlayCreator.of(registeredNodes.keySet(), cr);
         if (!overlayCreator.setup()) {
-            Utils.error("failed to generate the overlayCreator");
+            Utils.error("failed to generate the overlay");
             return;
         }
 
@@ -241,7 +241,7 @@ public class Registry implements Node {
         MessagingNodesList messagingNodesList = MessagingNodesList.of(nodes);
         try {
             registeredNodes.get(node).send(messagingNodesList.getBytes());
-            Utils.debug(String.format("sent [%s:%d]: %s", registeredNodes.get(node).getSocket().getRemoteSocketAddress(), registeredNodes.get(node).getSocket().getPort(), messagingNodesList));
+            Utils.debug(String.format("sent [%s]: %s", registeredNodes.get(node).getSocket().getRemoteSocketAddress(), messagingNodesList));
         }
         catch (IOException e) {
             e.printStackTrace();

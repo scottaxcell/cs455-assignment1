@@ -5,6 +5,8 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MessageFactory {
     private static final int SIZE_OF_INT = 4;
@@ -58,12 +60,16 @@ public class MessageFactory {
          *
          * where nodeX Info: node_hostname:portnum
          */
+        List<String> nodeInfos = new ArrayList<>();
         int numNodes = dataInputStream.readInt();
-        int nodesLength = dataLength - SIZE_OF_INT * 2;
-        byte[] nodesBytes = new byte[nodesLength];
-        dataInputStream.readFully(nodesBytes, 0, nodesLength);
-        String nodes = new String(nodesBytes);
-        return MessagingNodesList.of(nodes.split("\\n"));
+        for (int i = 0; i < numNodes; i++) {
+            int nodeInfoLength = dataInputStream.readInt();
+            byte[] nodeInfoBytes = new byte[nodeInfoLength];
+            dataInputStream.readFully(nodeInfoBytes, 0, nodeInfoLength);
+            String nodeInfo = new String(nodeInfoBytes);
+            nodeInfos.add(nodeInfo);
+        }
+        return MessagingNodesList.of(nodeInfos.toArray(new String[nodeInfos.size()]));
     }
 
     private static Message createDeregisterResponse(int dataLength, DataInputStream dataInputStream) throws IOException {

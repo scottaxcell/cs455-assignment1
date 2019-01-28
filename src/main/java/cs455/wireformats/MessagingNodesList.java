@@ -39,13 +39,9 @@ public class MessagingNodesList implements Message {
 
         dataOutputStream.writeInt(getProtocol());
         dataOutputStream.writeInt(nodes.length);
-        if (nodes.length > 0) {
-            StringBuilder stringBuilder = new StringBuilder();
-            for (String node : nodes) {
-                stringBuilder.append(node);
-                stringBuilder.append("\n");
-            }
-            dataOutputStream.write(stringBuilder.toString().getBytes());
+        for (String node : nodes) {
+            dataOutputStream.writeInt(node.length());
+            dataOutputStream.write(node.getBytes());
         }
         dataOutputStream.flush();
 
