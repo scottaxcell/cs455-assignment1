@@ -67,7 +67,7 @@ public class OverlayCreator {
         int neighborIndex = getNeighborIndexXStepsAway(index, steps);
         String source = nodes.get(index);
         String sink = nodes.get(neighborIndex);
-        addLink(Link.of(source, sink));
+        addLink(Link.of(source, sink, generateRandomWeight()));
     }
 
     private int getNeighborIndexXStepsAway(int index, int steps) {
@@ -125,11 +125,11 @@ public class OverlayCreator {
             String source = nodes.get(i);
             if (i == nodes.size() - 1) {
                 String sink = nodes.get(0);
-                addLink(Link.of(source, sink));
+                addLink(Link.of(source, sink, generateRandomWeight()));
             }
             else {
                 String sink = nodes.get(i + 1);
-                addLink(Link.of(source, sink));
+                addLink(Link.of(source, sink, generateRandomWeight()));
             }
         }
     }
@@ -208,11 +208,15 @@ public class OverlayCreator {
         // ensure all links have been created
         int numLinks = links.size();
         for (int i = 0; i < numLinks; i++)
-            addLink(Link.of(links.get(i).getSink(), links.get(i).getSource()));
+            addLink(Link.of(links.get(i).getSink(), links.get(i).getSource(), links.get(i).getWeight()));
 
         return links.stream()
             .map(l -> l.getInfo())
             .toArray(size -> new String[size]);
+    }
+
+    private int generateRandomWeight() {
+        return new Random().nextInt(10) + 1;
     }
 
     private final class Dfs {

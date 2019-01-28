@@ -8,18 +8,14 @@ public class Link {
     private String sink;
     private int weight;
 
-    private Link(String source, String sink) {
+    private Link(String source, String sink, int weight) {
         this.source = source;
         this.sink = sink;
-        this.weight = generateRandomWeight();
+        this.weight = weight;
     }
 
-    private int generateRandomWeight() {
-        return new Random().nextInt(10) + 1;
-    }
-
-    public static Link of(String source, String sink) {
-        return new Link(source, sink);
+    public static Link of(String source, String sink, int weight) {
+        return new Link(source, sink, weight);
     }
 
     public String getSource() {
@@ -56,5 +52,9 @@ public class Link {
 
     public String getInfo() {
         return String.format("%s %s %d", getSource(), getSink(), weight);
+    }
+
+    public int getWeight() {
+        return weight;
     }
 }
