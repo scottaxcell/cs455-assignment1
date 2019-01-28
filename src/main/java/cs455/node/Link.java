@@ -1,6 +1,7 @@
 package cs455.node;
 
 import java.util.Objects;
+import java.util.Random;
 
 public class Link {
     private String source;
@@ -10,6 +11,11 @@ public class Link {
     private Link(String source, String sink) {
         this.source = source;
         this.sink = sink;
+        this.weight = generateRandomWeight();
+    }
+
+    private int generateRandomWeight() {
+        return new Random().nextInt(10) + 1;
     }
 
     public static Link of(String source, String sink) {
@@ -46,5 +52,9 @@ public class Link {
     @Override
     public int hashCode() {
         return Objects.hash(source, sink, weight);
+    }
+
+    public String getInfo() {
+        return String.format("%s %s %d", getSource(), getSink(), weight);
     }
 }

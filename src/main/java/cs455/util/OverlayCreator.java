@@ -156,7 +156,7 @@ public class OverlayCreator {
         return true;
     }
 
-        private void addLink(Link link) {
+    private void addLink(Link link) {
         if (!links.contains(link))
             links.add(link);
     }
@@ -164,23 +164,6 @@ public class OverlayCreator {
     private void addSink(String source, String sink) {
         if (!connections.get(source).contains(sink))
             connections.get(source).add(sink);
-    }
-
-    private int getNumberOfSinks(String source) {
-        return connections.get(source).size();
-    }
-
-    private List<String> getValidSinks(String source) {
-        return connections.entrySet().stream()
-            .filter(e -> !e.getKey().equals(source))
-            .filter(e -> e.getValue().size() < cr)
-            .filter(e -> !getConnectedSinks(source).contains(e.getKey()))
-            .map(e -> e.getKey())
-            .collect(Collectors.toList());
-    }
-
-    private List<String> getConnectedSinks(String source) {
-        return connections.get(source);
     }
 
     private boolean checkNumberOfLinks() {
@@ -214,14 +197,21 @@ public class OverlayCreator {
         return dfs.isSinkReachable(source, sink);
     }
 
-    private int getRandomNodeIndex(int maxInt) {
-        return new Random().nextInt(maxInt);
-    }
-
     public String[] getNodeConnections(String node) {
         return links.stream()
             .filter(l -> l.getSource().equals(node))
             .map(l -> l.getSink())
+            .toArray(size -> new String[size]);
+    }
+
+    public String[] getLinkWeights() {
+        // ensure all links have been created
+        int numLinks = links.size();
+        for (int i = 0; i < numLinks; i++)
+            addLink(Link.of(links.get(i).getSink(), links.get(i).getSource()));
+
+        return links.stream()
+            .map(l -> l.getInfo())
             .toArray(size -> new String[size]);
     }
 

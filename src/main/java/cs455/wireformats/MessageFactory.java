@@ -27,9 +27,11 @@ public class MessageFactory {
             case Protocol.DEREGISTER_RESPONSE:
                 return createDeregisterResponse(data.length, dataInputStream);
             case Protocol.MESSAGING_NODES_LIST:
-                return createMessagingNodesList(data.length, dataInputStream);
+                return createMessagingNodesList(dataInputStream);
             case Protocol.HANDSHAKE:
                 return createHandshake(data.length, dataInputStream, socket);
+            case Protocol.LINK_WEIGHTS:
+                return createLinkWeights(dataInputStream);
             default:
                 throw new RuntimeException("received an unknown message");
         }
@@ -49,7 +51,30 @@ public class MessageFactory {
         return Handshake.of(ip, port, socket);
     }
 
-    private static Message createMessagingNodesList(int dataLength, DataInputStream dataInputStream) throws IOException {
+    private static Message createLinkWeights(DataInputStream dataInputStream) throws IOException {
+        /**
+         * Message Type: Link_Weights
+         * Number of links: L
+         * Linkinfo1
+         * Linkinfo2
+         * ...
+         * LinkinfoL
+         *
+         * where LinkinfoL: hostnameA:portnumA hostnameB:portnumB weight
+         */
+        List<String> linkInfos = new ArrayList<>();
+        int numLinks = dataInputStream.readInt();
+        for (int i = 0; i < numLinks; i++) {
+            int linkInfoLength = dataInputStream.readInt();
+            byte[] linkInfoBytes = new byte[linkInfoLength];
+            dataInputStream.readFully(linkInfoBytes, 0, linkInfoLength);
+            String linkInfo = new String(linkInfoBytes);
+            linkInfos.add(linkInfo);
+        }
+        return LinkWeights.of(linkInfos.toArray(new String[linkInfos.size()]));
+    }
+
+    private static Message createMessagingNodesList(DataInputStream dataInputStream) throws IOException {
         /**
          * Message Type: MESSAGING_NODES_LIST
          * Number of peer messaging nodes: X

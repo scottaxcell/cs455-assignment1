@@ -87,9 +87,31 @@ public class MessagingNode implements Node {
             case Protocol.HANDSHAKE:
                 handleHandshake(message);
                 break;
+            case Protocol.LINK_WEIGHTS:
+                handleLinkWeights(message);
+                break;
             default:
                 throw new RuntimeException(String.format("received an unknown message with protocol %d", protocol));
         }
+    }
+
+    private void handleLinkWeights(Message message) {
+        if (!(message instanceof LinkWeights)) {
+            Utils.error("message of " + message.getClass() + " unexpected");
+            return;
+        }
+
+        LinkWeights linkWeights = (LinkWeights) message;
+        Utils.debug("received: " + linkWeights);
+
+        for (String link : linkWeights.getLinks()) {
+            String[] split = link.split(" ");
+            String source = split[0];
+            String sink = split[1];
+            int weight = Integer.parseInt(split[2]);
+
+        }
+        Utils.info("Link weights are received and processed. Ready to send messages.");
     }
 
     private void handleHandshake(Message message) {

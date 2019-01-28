@@ -7,4 +7,5 @@ public interface Protocol {
     int DEREGISTER_RESPONSE = 3;
     int MESSAGING_NODES_LIST = 4;
     int HANDSHAKE = 5;
+    int LINK_WEIGHTS = 6;
 }

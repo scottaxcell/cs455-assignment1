@@ -216,10 +216,28 @@ public class Registry implements Node {
                 setupOverlay(numConnections);
             }
             else if (input.startsWith("send-overlay-link-weights")) {
-                // TODO
+                sendLinkWeights();
             }
             else if (input.startsWith("start")) {
                 // TODO
+            }
+        }
+    }
+
+    private void sendLinkWeights() {
+        if (overlayCreator == null) {
+            Utils.error("failed to send link weights. setup-overlay <num> expected to be called first.");
+            return;
+        }
+        String[] linkWeights = overlayCreator.getLinkWeights();
+        LinkWeights msg = LinkWeights.of(linkWeights);
+        for (TcpSender tcpSender : registeredNodes.values()) {
+            try {
+                tcpSender.send(msg.getBytes());
+                Utils.debug(String.format("sent [%s]: %s", tcpSender.getSocket().getRemoteSocketAddress(), msg));
+            }
+            catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
