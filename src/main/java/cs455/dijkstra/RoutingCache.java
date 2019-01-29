@@ -7,16 +7,21 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class RoutingCache {
-    private final String startNode;
     private final Dijkstra dijkstra;
+    private Map<String, String> nextHop = new HashMap<>();
 
     private RoutingCache(String startNode, Link[] links) {
-        this.startNode = startNode;
         this.dijkstra = new Dijkstra(links);
+        dijkstra.computeShortestPath(startNode);
+        dijkstra.initializeNextHop();
     }
 
     public static RoutingCache of(String startNode, Link[] links) {
         return new RoutingCache(startNode, links);
+    }
+
+    public String getNextHop(String sink) {
+        return nextHop.get(sink);
     }
 
     private class Dijkstra {
@@ -39,7 +44,7 @@ public class RoutingCache {
             graph.computeIfAbsent(link.getSource(), l -> new ArrayList<>()).add(link);
         }
 
-        public void computeShortestPath(String source) {
+        void computeShortestPath(String source) {
             distance.put(source, 0);
             unsettledNodes.add(source);
 
@@ -51,7 +56,20 @@ public class RoutingCache {
             }
         }
 
-        public List<String> getPath(String target) {
+        void initializeNextHop() {
+            for (String node : graph.keySet()) {
+                List<String> path = dijkstra.getPath(node);
+                if (path == null)
+                    throw new RuntimeException("expected to find a path");
+
+                if (path.size() < 2)
+                    throw new RuntimeException("expected to find sink in path");
+
+                nextHop.put(node, path.get(1));
+            }
+        }
+
+        List<String> getPath(String target) {
             List<String> path = new LinkedList<>();
             String step = target;
             if (predecessors.get(step) == null)

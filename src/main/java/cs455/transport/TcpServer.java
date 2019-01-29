@@ -3,6 +3,7 @@ package cs455.transport;
 import cs455.node.Node;
 import cs455.util.Utils;
 
+import javax.rmi.CORBA.Util;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.ServerSocket;
@@ -33,7 +34,7 @@ public class TcpServer implements Runnable {
         try {
             while (!Thread.interrupted()) {
                 Socket socket = serverSocket.accept();
-                TcpConnection tcpConnection = TcpConnection.of(socket, node);
+                TcpConnection.of(socket, node);
             }
         }
         catch (IOException e) {
@@ -41,8 +42,14 @@ public class TcpServer implements Runnable {
         }
     }
 
-    public String getIp() throws UnknownHostException {
-        return serverSocket.getInetAddress().getLocalHost().getHostName();
+    public String getIp() {
+        try {
+            return serverSocket.getInetAddress().getLocalHost().getCanonicalHostName();
+        }
+        catch (UnknownHostException e) {
+            e.printStackTrace();
+            return "";
+        }
     }
 
     public int getPort() {

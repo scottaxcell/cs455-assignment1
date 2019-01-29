@@ -1,7 +1,9 @@
 package cs455.node;
 
+import cs455.dijkstra.RoutingCache;
 import cs455.transport.TcpConnection;
 import cs455.transport.TcpServer;
+import cs455.util.Link;
 import cs455.util.Utils;
 import cs455.wireformats.*;
 
@@ -10,9 +12,7 @@ import java.net.Inet4Address;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
@@ -24,6 +24,7 @@ public class MessagingNode implements Node {
     private TcpServer tcpServer;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private Map<String, TcpConnection> connectedNodes = new HashMap<>();
+    private RoutingCache routingCache;
 
     private MessagingNode(String registryIp, int registryPort) {
         this.registryIp = registryIp;
@@ -107,13 +108,15 @@ public class MessagingNode implements Node {
         LinkWeights linkWeights = (LinkWeights) message;
         Utils.debug("received: " + linkWeights);
 
+        List<Link> links = new ArrayList<>();
         for (String link : linkWeights.getLinks()) {
             String[] split = link.split(" ");
             String source = split[0];
             String sink = split[1];
             int weight = Integer.parseInt(split[2]);
-
+            links.add(Link.of(source, sink, weight));
         }
+        routingCache = RoutingCache.of(getName(), links.toArray(new Link[links.size()]));
         Utils.info("Link weights are received and processed. Ready to send messages.");
     }
 
@@ -234,5 +237,9 @@ public class MessagingNode implements Node {
 
         MessagingNode messagingNode = MessagingNode.of(registryIp, registryPort);
         messagingNode.go();
+    }
+
+    private String getName() {
+        return String.format("%s:%d", tcpServer.getIp(), tcpServer.getPort());
     }
 }

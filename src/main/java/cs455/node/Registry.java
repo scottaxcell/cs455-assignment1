@@ -7,9 +7,7 @@ import cs455.util.Utils;
 import cs455.wireformats.*;
 
 import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -19,7 +17,6 @@ import java.util.regex.Pattern;
 
 
 public class Registry implements Node {
-    public static final String LOOPBACK_IP = "127.0.0.1";
     private int port = 50700;
     private TcpServer tcpServer;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -79,18 +76,9 @@ public class Registry implements Node {
         TcpSender tcpSender = TcpSender.of(socket);
         String address = String.format("%s:%d", request.getIp(), request.getPort());
 
-        if (!request.getIp().equals(socket.getInetAddress().getHostAddress())) {
-            if (socket.getInetAddress().getHostAddress().equals(LOOPBACK_IP)) {
-                // handle scenario where messaging node exists on the same machine
-                if (!request.getIp().equals(tcpServer.getIp())) {
-                    sendMismatchedIpDeregisterResponse(tcpSender);
-                    return;
-                }
-            }
-            else {
-                sendMismatchedIpDeregisterResponse(tcpSender);
-                return;
-            }
+        if (!request.getIp().equals(socket.getInetAddress().getCanonicalHostName())) {
+            sendMismatchedIpDeregisterResponse(tcpSender);
+            return;
         }
 
         synchronized (registeredNodes) {
@@ -140,18 +128,9 @@ public class Registry implements Node {
         TcpSender tcpSender = TcpSender.of(socket);
         String address = String.format("%s:%d", request.getIp(), request.getPort());
 
-        if (!request.getIp().equals(socket.getInetAddress().getHostAddress())) {
-            if (socket.getInetAddress().getHostAddress().equals(LOOPBACK_IP)) {
-                // handle scenario where messaging node exists on the same machine
-                if (!request.getIp().equals(tcpServer.getIp())) {
-                    sendMismatchedIpRegisterResponse(tcpSender);
-                    return;
-                }
-            }
-            else {
-                sendMismatchedIpRegisterResponse(tcpSender);
-                return;
-            }
+        if (!request.getIp().equals(socket.getInetAddress().getCanonicalHostName())) {
+            sendMismatchedIpRegisterResponse(tcpSender);
+            return;
         }
 
         synchronized (registeredNodes) {
@@ -202,14 +181,13 @@ public class Registry implements Node {
             input = scanner.next();
 
             if (input.startsWith("list-messaging-nodes")) {
-                // TODO
+                listMessagingNodes();
             }
             else if (input.startsWith("list-weights")) {
-                // TODO
+                listWeights();
             }
             else if (input.startsWith("setup-overlay")) {
-                int numConnections = Integer.parseInt(input.split(" ")[1]);
-                setupOverlay(numConnections);
+                setupOverlay(Integer.parseInt(input.split(" ")[1]));
             }
             else if (input.startsWith("send-overlay-link-weights")) {
                 sendLinkWeights();
@@ -218,6 +196,20 @@ public class Registry implements Node {
                 // TODO
             }
         }
+    }
+
+    private void listWeights() {
+        if (overlayCreator == null) {
+            Utils.error("failed to print link weights. setup-overlay <num> expected to be called first.");
+            return;
+        }
+        overlayCreator.getLinks().stream()
+            .forEach(l -> Utils.out(String.format("%s %s %d\n", l.getSource(), l.getSink(), l.getWeight())));
+    }
+
+    private void listMessagingNodes() {
+        registeredNodes.keySet().stream()
+            .forEach(n -> Utils.out(String.format("%s\n", n)));
     }
 
     private void sendLinkWeights() {

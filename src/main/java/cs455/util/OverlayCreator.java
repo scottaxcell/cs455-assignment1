@@ -204,16 +204,31 @@ public class OverlayCreator {
     }
 
     public String[] getLinkWeights() {
-        // ensure all links have been created
-        int numLinks = links.size();
-        for (int i = 0; i < numLinks; i++)
-            addLink(Link.of(links.get(i).getSink(), links.get(i).getSource(), links.get(i).getWeight()));
+        createAllLinks();
 
         return links.stream()
             .map(l -> l.getInfo())
             .toArray(size -> new String[size]);
     }
 
+    public List<Link> getLinks() {
+        createAllLinks();
+
+        // returns a subset of all the links. since links are bi-directional,
+        // only return one of the links between any two nodes
+        List<Link> result = new ArrayList<>();
+        links.stream()
+            .filter(l -> !result.contains(Link.of(l.getSink(), l.getSource(), l.getWeight())))
+            .forEach(l -> result.add(l));
+        return result;
+    }
+
+    private void createAllLinks() {
+        // ensure all links have been created
+        int numLinks = links.size();
+        for (int i = 0; i < numLinks; i++)
+            addLink(Link.of(links.get(i).getSink(), links.get(i).getSource(), links.get(i).getWeight()));
+    }
 
     private final class Dfs {
         private Queue<String> queue = new ArrayDeque<>();
