@@ -7,10 +7,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class RoutingCache {
+    private final String startNode;
     private final Dijkstra dijkstra;
     private Map<String, String> nextHop = new HashMap<>();
+    private Map<String, List<Link>> graph = new HashMap<>();
 
     private RoutingCache(String startNode, Link[] links) {
+        this.startNode = startNode;
         this.dijkstra = new Dijkstra(links);
         dijkstra.computeShortestPath(startNode);
         dijkstra.initializeNextHop();
@@ -24,8 +27,33 @@ public class RoutingCache {
         return nextHop.get(sink);
     }
 
+    public String getShortestPathsForPrinting() {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String node : graph.keySet()) {
+            if (node.equals(startNode))
+                continue;
+            List<String> path = dijkstra.getPath(node);
+            if (path == null)
+                throw new RuntimeException("expected to find a path");
+            String previousHop = path.get(0);
+            stringBuilder.append(previousHop);
+            for (int i = 1; i < path.size(); i++) {
+                String hop = path.get(i);
+                int weight = graph.get(previousHop).stream()
+                    .filter(l -> l.getSink().equals(hop))
+                    .map(Link::getWeight)
+                    .findFirst().get();
+                stringBuilder.append(String.format("--%d--", weight));
+                stringBuilder.append(String.format("%s", hop));
+                previousHop = hop;
+                if (i == path.size() - 1)
+                    stringBuilder.append("\n");
+            }
+        }
+        return stringBuilder.toString();
+    }
+
     private class Dijkstra {
-        private Map<String, List<Link>> graph = new HashMap<>();
         private Set<String> settledNodes = new HashSet<>();
         private Set<String> unsettledNodes = new HashSet<>();
         private Map<String, String> predecessors = new HashMap<>();
@@ -58,6 +86,9 @@ public class RoutingCache {
 
         void initializeNextHop() {
             for (String node : graph.keySet()) {
+                if (node.equals(startNode))
+                    continue;
+
                 List<String> path = dijkstra.getPath(node);
                 if (path == null)
                     throw new RuntimeException("expected to find a path");

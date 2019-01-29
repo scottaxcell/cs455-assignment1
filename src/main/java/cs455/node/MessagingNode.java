@@ -205,11 +205,15 @@ public class MessagingNode implements Node {
 
             input = scanner.next();
             if (input.startsWith("print-shortest-path")) {
-                // TODO
+                printShortestPath();
             }
             else if (input.startsWith("exit-overlay"))
                 executor.execute(this::sendDeregistrationRequest);
         }
+    }
+
+    private void printShortestPath() {
+        Utils.out(routingCache.getShortestPathsForPrinting());
     }
 
     private void sendDeregistrationRequest() {

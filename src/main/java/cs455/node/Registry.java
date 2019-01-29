@@ -77,8 +77,17 @@ public class Registry implements Node {
         String address = String.format("%s:%d", request.getIp(), request.getPort());
 
         if (!request.getIp().equals(socket.getInetAddress().getCanonicalHostName())) {
-            sendMismatchedIpDeregisterResponse(tcpSender);
-            return;
+            if (socket.getInetAddress().getCanonicalHostName().equals("localhost")) {
+                // handle scenario where messaging node exists on the same machine
+                if (!request.getIp().equals(tcpServer.getIp())) {
+                    sendMismatchedIpDeregisterResponse(tcpSender);
+                    return;
+                }
+            }
+            else {
+                sendMismatchedIpDeregisterResponse(tcpSender);
+                return;
+            }
         }
 
         synchronized (registeredNodes) {
@@ -129,8 +138,17 @@ public class Registry implements Node {
         String address = String.format("%s:%d", request.getIp(), request.getPort());
 
         if (!request.getIp().equals(socket.getInetAddress().getCanonicalHostName())) {
-            sendMismatchedIpRegisterResponse(tcpSender);
-            return;
+            if (socket.getInetAddress().getCanonicalHostName().equals("localhost")) {
+                // handle scenario where messaging node exists on the same machine
+                if (!request.getIp().equals(tcpServer.getIp())) {
+                    sendMismatchedIpRegisterResponse(tcpSender);
+                    return;
+                }
+            }
+            else {
+                sendMismatchedIpRegisterResponse(tcpSender);
+                return;
+            }
         }
 
         synchronized (registeredNodes) {
