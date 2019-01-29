@@ -26,7 +26,7 @@ public class Registry implements Node {
     private Registry() {
     }
 
-    private void start() {
+    private void go() {
         tcpServer = TcpServer.of(port, this);
         Thread thread = new Thread(tcpServer);
         thread.start();
@@ -211,7 +211,20 @@ public class Registry implements Node {
                 sendLinkWeights();
             }
             else if (input.startsWith("start")) {
-                // TODO
+                start(Integer.parseInt(input.split(" ")[1]));
+            }
+        }
+    }
+
+    private void start(int numRounds) {
+        TaskInitiate taskInitiate = TaskInitiate.of(numRounds);
+        for (TcpSender tcpSender : registeredNodes.values()) {
+            try {
+                tcpSender.send(taskInitiate.getBytes());
+                Utils.debug(String.format("sent [%s]: %s", tcpSender.getSocket().getRemoteSocketAddress(), taskInitiate));
+            }
+            catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -282,6 +295,6 @@ public class Registry implements Node {
 //            printHelpAndExit();
 
         Registry registry = Registry.of(args);
-        registry.start();
+        registry.go();
     }
 }

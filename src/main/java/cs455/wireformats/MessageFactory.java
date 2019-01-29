@@ -32,9 +32,20 @@ public class MessageFactory {
                 return createHandshake(data.length, dataInputStream, socket);
             case Protocol.LINK_WEIGHTS:
                 return createLinkWeights(dataInputStream);
+            case Protocol.TASK_INITIATE:
+                return createTaskInitiative(dataInputStream);
             default:
                 throw new RuntimeException("received an unknown message");
         }
+    }
+
+    private static TaskInitiate createTaskInitiative(DataInputStream dataInputStream) throws IOException {
+        /**
+         * Message Type: TASK_INITIATE
+         * Rounds: X
+         */
+        int numRounds = dataInputStream.readInt();
+        return TaskInitiate.of(numRounds);
     }
 
     private static Handshake createHandshake(int dataLength, DataInputStream dataInputStream, Socket socket) throws IOException {

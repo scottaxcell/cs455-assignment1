@@ -8,4 +8,5 @@ public interface Protocol {
     int MESSAGING_NODES_LIST = 4;
     int HANDSHAKE = 5;
     int LINK_WEIGHTS = 6;
+    int TASK_INITIATE = 7;
 }

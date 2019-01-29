@@ -53,6 +53,12 @@ public class RoutingCache {
         return stringBuilder.toString();
     }
 
+    public List<String> getAllOtherNodes() {
+        return graph.keySet().stream()
+            .filter(n -> !n.equals(startNode))
+            .collect(Collectors.toList());
+    }
+
     private class Dijkstra {
         private Set<String> settledNodes = new HashSet<>();
         private Set<String> unsettledNodes = new HashSet<>();

@@ -1,7 +1,9 @@
 package cs455.node;
 
+import com.sun.xml.internal.ws.api.pipe.TubelineAssembler;
 import cs455.dijkstra.RoutingCache;
 import cs455.transport.TcpConnection;
+import cs455.transport.TcpSender;
 import cs455.transport.TcpServer;
 import cs455.util.Link;
 import cs455.util.Utils;
@@ -18,6 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 public class MessagingNode implements Node {
+    private static final int NUM_MESSAGES_TO_SEND = 5;
     private String registryIp;
     private int registryPort;
     private TcpConnection registryTcpConnection;
@@ -94,8 +97,34 @@ public class MessagingNode implements Node {
             case Protocol.LINK_WEIGHTS:
                 handleLinkWeights(message);
                 break;
+            case Protocol.TASK_INITIATE:
+                handleTaskInitiative(message);
+                break;
             default:
                 throw new RuntimeException(String.format("received an unknown message with protocol %d", protocol));
+        }
+    }
+
+    private void handleTaskInitiative(Message message) {
+        if (!(message instanceof TaskInitiate)) {
+            Utils.error("message of " + message.getClass() + " unexpected");
+            return;
+        }
+
+        TaskInitiate taskInitiate = (TaskInitiate) message;
+        int numRounds = taskInitiate.getNumRounds();
+
+        List<String> nodes = routingCache.getAllOtherNodes();
+        
+        for (int i = 0; i < numRounds; i++) {
+            int randomIndex = new Random().nextInt(nodes.size());
+            String randomNode = nodes.get(randomIndex);
+            String nextHop = routingCache.getNextHop(randomNode);
+            TcpConnection tcpConnection = connectedNodes.get(nextHop);
+            
+            for (int j = 0; j < NUM_MESSAGES_TO_SEND; j++) {
+                
+            }
         }
     }
 
