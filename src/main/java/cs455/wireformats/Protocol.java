@@ -11,4 +11,6 @@ public interface Protocol {
     int TASK_INITIATE = 7;
     int MESSAGE = 8;
     int TASK_COMPLETE = 9;
+    int PULL_TRAFFIC_SUMMARY = 10;
+    int TRAFFIC_SUMMARY = 11;
 }

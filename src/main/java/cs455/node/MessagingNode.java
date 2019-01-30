@@ -100,8 +100,34 @@ public class MessagingNode implements Node {
             case Protocol.MESSAGE:
                 handleMessage(event);
                 break;
+            case Protocol.PULL_TRAFFIC_SUMMARY:
+                handlePullTrafficSummary(event);
+                break;
             default:
                 throw new RuntimeException(String.format("received an unknown event with protocol %d", protocol));
+        }
+    }
+
+    private void handlePullTrafficSummary(Event event) {
+        if (!(event instanceof PullTrafficSummary)) {
+            Utils.error("event of " + event.getClass() + " unexpected");
+            return;
+        }
+
+        PullTrafficSummary pullTrafficSummary = (PullTrafficSummary) event;
+        Utils.debug("received: " + pullTrafficSummary);
+
+        TrafficSummary trafficSummary = TrafficSummary.of(tcpServer.getIp(), tcpServer.getPort(),
+            transmissionTracker.getSendTracker(), transmissionTracker.getSendSummation(),
+            transmissionTracker.getReceiveTracker(), transmissionTracker.getReceiveSummation(),
+            transmissionTracker.getRelayTracker());
+
+        try {
+            registryTcpConnection.send(trafficSummary.getBytes());
+            Utils.debug(String.format("sent [%s]: %s", registryTcpConnection.getSocket().getRemoteSocketAddress(), trafficSummary));
+        }
+        catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

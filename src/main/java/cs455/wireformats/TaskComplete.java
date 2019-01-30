@@ -54,4 +54,12 @@ public class TaskComplete implements Event {
 
         return data;
     }
+
+    @Override
+    public String toString() {
+        return "TaskComplete{" +
+            "ip='" + ip + '\'' +
+            ", port=" + port +
+            '}';
+    }
 }

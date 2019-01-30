@@ -22,6 +22,7 @@ public class Registry implements Node {
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private Map<String, TcpSender> registeredNodes = new HashMap<>();
     private OverlayCreator overlayCreator;
+    private int numCompletedNodes;
 
     private Registry() {
     }
@@ -76,8 +77,19 @@ public class Registry implements Node {
         TaskComplete taskComplete = (TaskComplete) event;
         Utils.debug("received: " + taskComplete);
 
-        // TODO
-//        String address = String.format("%s:%d", taskComplete.getIp(), taskComplete.getPort());
+        numCompletedNodes++;
+        if (numCompletedNodes == registeredNodes.size()) {
+            PullTrafficSummary pullTrafficSummary = PullTrafficSummary.of();
+            for (TcpSender tcpSender : registeredNodes.values()) {
+                try {
+                    tcpSender.send(pullTrafficSummary.getBytes());
+                    Utils.debug(String.format("sent [%s]: %s", tcpSender.getSocket().getRemoteSocketAddress(), pullTrafficSummary));
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     private void handleDeregisterRequest(Event event) throws IOException {
