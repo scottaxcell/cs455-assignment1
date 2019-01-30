@@ -4,7 +4,7 @@ import cs455.dijkstra.RoutingCache;
 import cs455.transport.TcpConnection;
 import cs455.transport.TcpServer;
 import cs455.util.Link;
-import cs455.util.TransmissionTracker;
+import cs455.util.TrafficTracker;
 import cs455.util.Utils;
 import cs455.wireformats.*;
 
@@ -24,7 +24,7 @@ public class MessagingNode implements Node {
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private Map<String, TcpConnection> connectedNodes = new HashMap<>();
     private RoutingCache routingCache;
-    private TransmissionTracker transmissionTracker = TransmissionTracker.of();
+    private TrafficTracker trafficTracker = TrafficTracker.of();
 
     private MessagingNode(String registryIp, int registryPort) {
         this.registryIp = registryIp;
@@ -118,9 +118,9 @@ public class MessagingNode implements Node {
         Utils.debug("received: " + pullTrafficSummary);
 
         TrafficSummary trafficSummary = TrafficSummary.of(tcpServer.getIp(), tcpServer.getPort(),
-            transmissionTracker.getSendTracker(), transmissionTracker.getSendSummation(),
-            transmissionTracker.getReceiveTracker(), transmissionTracker.getReceiveSummation(),
-            transmissionTracker.getRelayTracker());
+            trafficTracker.getSendTracker(), trafficTracker.getSendSummation(),
+            trafficTracker.getReceiveTracker(), trafficTracker.getReceiveSummation(),
+            trafficTracker.getRelayTracker());
 
         try {
             registryTcpConnection.send(trafficSummary.getBytes());
@@ -129,6 +129,8 @@ public class MessagingNode implements Node {
         catch (IOException e) {
             e.printStackTrace();
         }
+
+        trafficTracker.reset();
     }
 
     private void handleMessage(Event event) {
@@ -143,14 +145,14 @@ public class MessagingNode implements Node {
         int payload = message.getPayload();
         String destination = message.getDestination();
         if (getName().equals(destination)) {
-            transmissionTracker.incrementReceiveTracker();
-            transmissionTracker.addReceiveSummation(payload);
+            trafficTracker.incrementReceiveTracker();
+            trafficTracker.addReceiveSummation(payload);
         }
         else {
             String nextHop = routingCache.getNextHop(destination);
             TcpConnection tcpConnection = connectedNodes.get(nextHop);
             message = Message.of(payload, nextHop);
-            transmissionTracker.incrementRelayTracker();
+            trafficTracker.incrementRelayTracker();
             try {
                 tcpConnection.send(message.getBytes());
                 Utils.debug(String.format("sent [%s]: %s", tcpConnection.getSocket().getRemoteSocketAddress(), message));
@@ -181,8 +183,8 @@ public class MessagingNode implements Node {
             for (int j = 0; j < NUM_MESSAGES_TO_SEND; j++) {
                 int payload = new Random().nextInt();
                 Message message = Message.of(payload, randomNode);
-                transmissionTracker.incrementSendTracker();
-                transmissionTracker.addSendSummation(payload);
+                trafficTracker.incrementSendTracker();
+                trafficTracker.addSendSummation(payload);
                 try {
                     tcpConnection.send(message.getBytes());
                     Utils.debug(String.format("sent [%s]: %s", tcpConnection.getSocket().getRemoteSocketAddress(), message));

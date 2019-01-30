@@ -38,16 +38,48 @@ public class EventFactory {
                 return createMessage(dataInputStream);
             case Protocol.TASK_COMPLETE:
                 return createTaskComplete(dataInputStream);
+            case Protocol.PULL_TRAFFIC_SUMMARY:
+                return createPullTrafficSummary();
+            case Protocol.TRAFFIC_SUMMARY:
+                return createTrafficSummary(dataInputStream);
             default:
-                throw new RuntimeException("received an unknown message");
+                throw new RuntimeException(String.format("received an unknown event with protocol %d", protocol));
         }
+    }
+
+    private static TrafficSummary createTrafficSummary(DataInputStream dataInputStream) throws IOException {
+        /**
+         * Message Type: TRAFFIC_SUMMARY
+         * Node IP address:
+         * Node Port number:
+         * Number of messages sent
+         * Summation of sent messages
+         * Number of messages received
+         * Summation of received messages
+         * Number of messages relayed
+         */
+        int ipLength = dataInputStream.readInt();
+        byte[] ipBytes = new byte[ipLength];
+        dataInputStream.readFully(ipBytes, 0, ipLength);
+        String ip = new String(ipBytes);
+        int port = dataInputStream.readInt();
+        int numSent = dataInputStream.readInt();
+        long sentSummation = dataInputStream.readLong();
+        int numReceived = dataInputStream.readInt();
+        long receivedSummation = dataInputStream.readLong();
+        int numRelayed = dataInputStream.readInt();
+        return TrafficSummary.of(ip, port, numSent, sentSummation, numReceived, receivedSummation, numRelayed);
+    }
+
+    private static PullTrafficSummary createPullTrafficSummary() {
+        return PullTrafficSummary.of();
     }
 
     private static TaskComplete createTaskComplete(DataInputStream dataInputStream) throws IOException {
         /**
-         * Event Type (int): HANDSHAKE
-         * IP address (String)
-         * Port number (int)
+         * Event Type: TASK_COMPLETE
+         * Node IP address:
+         * Node Port number:
          */
         int ipLength = dataInputStream.readInt();
         byte[] ipBytes = new byte[ipLength];

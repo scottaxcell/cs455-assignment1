@@ -8,24 +8,48 @@ import java.io.IOException;
 public class TrafficSummary implements Event {
     private String ip;
     private int port;
-    private int numMessagesSent;
-    private long sentSummation;
-    private int numMessagesReceived;
-    private long receivedSummation;
-    private int numMessagesRelayed;
+    private int numSent;
+    private long sentSum;
+    private int numReceived;
+    private long receivedSum;
+    private int numRelayed;
 
-    private TrafficSummary(String ip, int port, int numMessagesSent, long sentSummation, int numMessagesReceived, long receivedSummation, int numMessagesRelayed) {
+    private TrafficSummary(String ip, int port, int numSent, long sentSum, int numReceived, long receivedSum, int numRelayed) {
         this.ip = ip;
         this.port = port;
-        this.numMessagesSent = numMessagesSent;
-        this.sentSummation = sentSummation;
-        this.numMessagesReceived = numMessagesReceived;
-        this.receivedSummation = receivedSummation;
-        this.numMessagesRelayed = numMessagesRelayed;
+        this.numSent = numSent;
+        this.sentSum = sentSum;
+        this.numReceived = numReceived;
+        this.receivedSum = receivedSum;
+        this.numRelayed = numRelayed;
     }
 
     public static TrafficSummary of(String ip, int port, int numMessagesSent, long sentSummation, int numMessagesReceived, long receivedSummation, int numMessagesRelayed) {
         return new TrafficSummary(ip, port, numMessagesSent, sentSummation, numMessagesReceived, receivedSummation, numMessagesRelayed);
+    }
+
+    public int getNumSent() {
+        return numSent;
+    }
+
+    public long getSentSum() {
+        return sentSum;
+    }
+
+    public int getNumReceived() {
+        return numReceived;
+    }
+
+    public long getReceivedSum() {
+        return receivedSum;
+    }
+
+    public int getNumRelayed() {
+        return numRelayed;
+    }
+
+    public String getNode() {
+        return String.format("%s:%d", ip, port);
     }
 
     @Override
@@ -53,11 +77,11 @@ public class TrafficSummary implements Event {
         dataOutputStream.write(ip.getBytes());
         dataOutputStream.writeInt(port);
 
-        dataOutputStream.writeInt(numMessagesSent);
-        dataOutputStream.writeLong(sentSummation);
-        dataOutputStream.writeInt(numMessagesReceived);
-        dataOutputStream.writeLong(receivedSummation);
-        dataOutputStream.writeInt(numMessagesRelayed);
+        dataOutputStream.writeInt(numSent);
+        dataOutputStream.writeLong(sentSum);
+        dataOutputStream.writeInt(numReceived);
+        dataOutputStream.writeLong(receivedSum);
+        dataOutputStream.writeInt(numRelayed);
 
         dataOutputStream.flush();
 
@@ -67,5 +91,18 @@ public class TrafficSummary implements Event {
         dataOutputStream.close();
 
         return data;
+    }
+
+    @Override
+    public String toString() {
+        return "TrafficSummary{" +
+            "ip='" + ip + '\'' +
+            ", port=" + port +
+            ", numSent=" + numSent +
+            ", sentSum=" + sentSum +
+            ", numReceived=" + numReceived +
+            ", receivedSum=" + receivedSum +
+            ", numRelayed=" + numRelayed +
+            '}';
     }
 }

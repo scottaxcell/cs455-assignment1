@@ -3,6 +3,7 @@ package cs455.node;
 import cs455.transport.TcpSender;
 import cs455.transport.TcpServer;
 import cs455.util.OverlayCreator;
+import cs455.util.StatisticsCollectorAndDisplay;
 import cs455.util.Utils;
 import cs455.wireformats.*;
 
@@ -23,6 +24,7 @@ public class Registry implements Node {
     private Map<String, TcpSender> registeredNodes = new HashMap<>();
     private OverlayCreator overlayCreator;
     private int numCompletedNodes;
+    private StatisticsCollectorAndDisplay statistics;
 
     private Registry() {
     }
@@ -63,9 +65,24 @@ public class Registry implements Node {
             case Protocol.TASK_COMPLETE:
                 handleTaskComplete(event);
                 break;
+            case Protocol.TRAFFIC_SUMMARY:
+                handleTrafficSummary(event);
+                break;
             default:
                 throw new RuntimeException(String.format("received an unknown event with protocol %d", protocol));
         }
+    }
+
+    private void handleTrafficSummary(Event event) {
+        if (!(event instanceof TrafficSummary)) {
+            Utils.error("event of " + event.getClass() + " unexpected");
+            return;
+        }
+
+        TrafficSummary trafficSummary = (TrafficSummary) event;
+        Utils.debug("received: " + trafficSummary);
+
+        statistics.addTrafficSummary(trafficSummary);
     }
 
     private void handleTaskComplete(Event event) {
@@ -79,6 +96,8 @@ public class Registry implements Node {
 
         numCompletedNodes++;
         if (numCompletedNodes == registeredNodes.size()) {
+            statistics = StatisticsCollectorAndDisplay.of(registeredNodes.size());
+
             PullTrafficSummary pullTrafficSummary = PullTrafficSummary.of();
             for (TcpSender tcpSender : registeredNodes.values()) {
                 try {
@@ -255,6 +274,7 @@ public class Registry implements Node {
     }
 
     private void start(int numRounds) {
+        numCompletedNodes = 0;
         TaskInitiate taskInitiate = TaskInitiate.of(numRounds);
         for (TcpSender tcpSender : registeredNodes.values()) {
             try {

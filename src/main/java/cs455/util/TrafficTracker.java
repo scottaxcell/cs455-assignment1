@@ -1,14 +1,14 @@
 package cs455.util;
 
-public class TransmissionTracker {
+public class TrafficTracker {
     private int sendTracker;
     private int receiveTracker;
     private int relayTracker;
     private long sendSummation;
     private long receiveSummation;
 
-    public static TransmissionTracker of() {
-        return new TransmissionTracker();
+    public static TrafficTracker of() {
+        return new TrafficTracker();
     }
 
     public synchronized void incrementSendTracker() {
@@ -49,5 +49,13 @@ public class TransmissionTracker {
 
     public long getReceiveSummation() {
         return receiveSummation;
+    }
+
+    public void reset() {
+        sendTracker = 0;
+        receiveTracker = 0;
+        relayTracker = 0;
+        sendSummation = 0;
+        receiveSummation = 0;
     }
 }
