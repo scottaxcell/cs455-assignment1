@@ -1,11 +1,15 @@
 package cs455.util;
 
-public class StatisticsCollectorAndDisplay {
+public class TransmissionTracker {
     private int sendTracker;
     private int receiveTracker;
     private int relayTracker;
     private long sendSummation;
     private long receiveSummation;
+
+    public static TransmissionTracker of() {
+        return new TransmissionTracker();
+    }
 
     public synchronized void incrementSendTracker() {
         sendTracker++;
@@ -25,5 +29,25 @@ public class StatisticsCollectorAndDisplay {
 
     public synchronized void addReceiveSummation(int number) {
         receiveSummation += number;
+    }
+
+    public int getSendTracker() {
+        return sendTracker;
+    }
+
+    public int getReceiveTracker() {
+        return receiveTracker;
+    }
+
+    public int getRelayTracker() {
+        return relayTracker;
+    }
+
+    public long getSendSummation() {
+        return sendSummation;
+    }
+
+    public long getReceiveSummation() {
+        return receiveSummation;
     }
 }

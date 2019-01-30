@@ -59,9 +59,25 @@ public class Registry implements Node {
             case Protocol.DEREGISTER_REQUEST:
                 handleDeregisterRequest(event);
                 break;
+            case Protocol.TASK_COMPLETE:
+                handleTaskComplete(event);
+                break;
             default:
                 throw new RuntimeException(String.format("received an unknown event with protocol %d", protocol));
         }
+    }
+
+    private void handleTaskComplete(Event event) {
+        if (!(event instanceof TaskComplete)) {
+            Utils.error("event of " + event.getClass() + " unexpected");
+            return;
+        }
+
+        TaskComplete taskComplete = (TaskComplete) event;
+        Utils.debug("received: " + taskComplete);
+
+        // TODO
+//        String address = String.format("%s:%d", taskComplete.getIp(), taskComplete.getPort());
     }
 
     private void handleDeregisterRequest(Event event) throws IOException {
@@ -205,13 +221,23 @@ public class Registry implements Node {
                 listWeights();
             }
             else if (input.startsWith("setup-overlay")) {
-                setupOverlay(Integer.parseInt(input.split(" ")[1]));
+                try {
+                    setupOverlay(Integer.parseInt(input.split(" ")[1]));
+                }
+                catch (ArrayIndexOutOfBoundsException e) {
+                    e.printStackTrace();
+                }
             }
             else if (input.startsWith("send-overlay-link-weights")) {
                 sendLinkWeights();
             }
             else if (input.startsWith("start")) {
-                start(Integer.parseInt(input.split(" ")[1]));
+                try {
+                    start(Integer.parseInt(input.split(" ")[1]));
+                }
+                catch (ArrayIndexOutOfBoundsException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

@@ -9,4 +9,6 @@ public interface Protocol {
     int HANDSHAKE = 5;
     int LINK_WEIGHTS = 6;
     int TASK_INITIATE = 7;
+    int MESSAGE = 8;
+    int TASK_COMPLETE = 9;
 }

@@ -4,6 +4,7 @@ import cs455.dijkstra.RoutingCache;
 import cs455.transport.TcpConnection;
 import cs455.transport.TcpServer;
 import cs455.util.Link;
+import cs455.util.TransmissionTracker;
 import cs455.util.Utils;
 import cs455.wireformats.*;
 
@@ -23,6 +24,7 @@ public class MessagingNode implements Node {
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private Map<String, TcpConnection> connectedNodes = new HashMap<>();
     private RoutingCache routingCache;
+    private TransmissionTracker transmissionTracker = TransmissionTracker.of();
 
     private MessagingNode(String registryIp, int registryPort) {
         this.registryIp = registryIp;
@@ -95,8 +97,41 @@ public class MessagingNode implements Node {
             case Protocol.TASK_INITIATE:
                 handleTaskInitiative(event);
                 break;
+            case Protocol.MESSAGE:
+                handleMessage(event);
+                break;
             default:
                 throw new RuntimeException(String.format("received an unknown event with protocol %d", protocol));
+        }
+    }
+
+    private void handleMessage(Event event) {
+        if (!(event instanceof Message)) {
+            Utils.error("event of " + event.getClass() + " unexpected");
+            return;
+        }
+
+        Message message = (Message) event;
+        Utils.debug("received: " + message);
+
+        int payload = message.getPayload();
+        String destination = message.getDestination();
+        if (getName().equals(destination)) {
+            transmissionTracker.incrementReceiveTracker();
+            transmissionTracker.addReceiveSummation(payload);
+        }
+        else {
+            String nextHop = routingCache.getNextHop(destination);
+            TcpConnection tcpConnection = connectedNodes.get(nextHop);
+            message = Message.of(payload, nextHop);
+            transmissionTracker.incrementRelayTracker();
+            try {
+                tcpConnection.send(message.getBytes());
+                Utils.debug(String.format("sent [%s]: %s", tcpConnection.getSocket().getRemoteSocketAddress(), message));
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -107,19 +142,38 @@ public class MessagingNode implements Node {
         }
 
         TaskInitiate taskInitiate = (TaskInitiate) event;
-        int numRounds = taskInitiate.getNumRounds();
+        Utils.debug("received: " + taskInitiate);
 
+        int numRounds = taskInitiate.getNumRounds();
         List<String> nodes = routingCache.getAllOtherNodes();
-        
         for (int i = 0; i < numRounds; i++) {
             int randomIndex = new Random().nextInt(nodes.size());
             String randomNode = nodes.get(randomIndex);
             String nextHop = routingCache.getNextHop(randomNode);
             TcpConnection tcpConnection = connectedNodes.get(nextHop);
-            
+
             for (int j = 0; j < NUM_MESSAGES_TO_SEND; j++) {
-                
+                int payload = new Random().nextInt();
+                Message message = Message.of(payload, randomNode);
+                transmissionTracker.incrementSendTracker();
+                transmissionTracker.addSendSummation(payload);
+                try {
+                    tcpConnection.send(message.getBytes());
+                    Utils.debug(String.format("sent [%s]: %s", tcpConnection.getSocket().getRemoteSocketAddress(), message));
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
+        }
+
+        TaskComplete taskComplete = TaskComplete.of(tcpServer.getIp(), tcpServer.getPort());
+        try {
+            registryTcpConnection.send(taskComplete.getBytes());
+            Utils.debug(String.format("sent [%s]: %s", registryTcpConnection.getSocket().getRemoteSocketAddress(), taskComplete));
+        }
+        catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

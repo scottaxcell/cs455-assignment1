@@ -8,7 +8,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MessageFactory {
+public class EventFactory {
     private static final int SIZE_OF_INT = 4;
     private static final int SIZE_OF_BYTE = 1;
 
@@ -34,9 +34,41 @@ public class MessageFactory {
                 return createLinkWeights(dataInputStream);
             case Protocol.TASK_INITIATE:
                 return createTaskInitiative(dataInputStream);
+            case Protocol.MESSAGE:
+                return createMessage(dataInputStream);
+            case Protocol.TASK_COMPLETE:
+                return createTaskComplete(dataInputStream);
             default:
                 throw new RuntimeException("received an unknown message");
         }
+    }
+
+    private static TaskComplete createTaskComplete(DataInputStream dataInputStream) throws IOException {
+        /**
+         * Event Type (int): HANDSHAKE
+         * IP address (String)
+         * Port number (int)
+         */
+        int ipLength = dataInputStream.readInt();
+        byte[] ipBytes = new byte[ipLength];
+        dataInputStream.readFully(ipBytes, 0, ipLength);
+        String ip = new String(ipBytes);
+        int port = dataInputStream.readInt();
+        return TaskComplete.of(ip, port);
+    }
+
+    private static Message createMessage(DataInputStream dataInputStream) throws IOException {
+        /**
+         * Event Type (int): MESSAGE
+         * Payload (int)
+         * Destination node (String)
+         */
+        int payload = dataInputStream.readInt();
+        int destinationLength = dataInputStream.readInt();
+        byte[] destinationBytes = new byte[destinationLength];
+        dataInputStream.readFully(destinationBytes, 0, destinationLength);
+        String destination = new String(destinationBytes);
+        return Message.of(payload, destination);
     }
 
     private static TaskInitiate createTaskInitiative(DataInputStream dataInputStream) throws IOException {
