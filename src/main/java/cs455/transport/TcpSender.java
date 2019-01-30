@@ -1,5 +1,7 @@
 package cs455.transport;
 
+import cs455.util.Utils;
+
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
@@ -19,6 +21,8 @@ public class TcpSender {
 
     public synchronized void send(byte[] data) throws IOException {
         int dataLength = data.length;
+        if (dataLength == 8)
+            Utils.debug("who?");
         dataOutputStream.writeInt(dataLength);
         dataOutputStream.write(data, 0, dataLength);
         dataOutputStream.flush();

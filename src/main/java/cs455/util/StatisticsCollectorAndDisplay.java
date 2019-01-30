@@ -39,27 +39,28 @@ public class StatisticsCollectorAndDisplay {
         int[] justify = getColumnJustifications();
 
         sb.append(String.format("%-"+justify[0]+"s  ", "Node"));
-        sb.append(String.format("%-"+justify[1]+"s  ", "# Sent"));
-        sb.append(String.format("%-"+justify[2]+"s  ", "# Received"));
+        sb.append(String.format("%"+justify[1]+"s  ", "# Sent"));
+        sb.append(String.format("%"+justify[2]+"s  ", "# Received"));
         sb.append(String.format("%"+justify[3]+"s  ", "Sent Sum"));
         sb.append(String.format("%"+justify[4]+"s  ", "Received Sum"));
-        sb.append(String.format("%-"+justify[5]+"s\n", "# Relayed"));
+        sb.append(String.format("%"+justify[5]+"s\n", "# Relayed"));
+        Utils.out(sb.toString());
 
-//        sb.append(String.format("Node\t# Sent\t# Received\tSent Sum\tReceived Sum\t# Relayed\n");
+        sb = new StringBuilder();
         for (TrafficSummary trafficSummary : trafficSummaries) {
             sb.append(String.format("%-"+justify[0]+"s  ", trafficSummary.getNode()));
-            sb.append(String.format("%-"+justify[1]+"s  ", trafficSummary.getNumSent()));
-            sb.append(String.format("%-"+justify[2]+"s  ", trafficSummary.getNumReceived()));
+            sb.append(String.format("%"+justify[1]+"s  ", trafficSummary.getNumSent()));
+            sb.append(String.format("%"+justify[2]+"s  ", trafficSummary.getNumReceived()));
             sb.append(String.format("%"+justify[3]+"s  ", trafficSummary.getSentSum()));
             sb.append(String.format("%"+justify[4]+"s  ", trafficSummary.getReceivedSum()));
-            sb.append(String.format("%-"+justify[5]+"s\n", trafficSummary.getNumRelayed()));
+            sb.append(String.format("%"+justify[5]+"s\n", trafficSummary.getNumRelayed()));
             Utils.out(sb.toString());
         }
 
         sb = new StringBuilder();
         sb.append(String.format("%-"+justify[0]+"s  ", "Sum"));
-        sb.append(String.format("%-"+justify[1]+"s  ", numSent));
-        sb.append(String.format("%-"+justify[2]+"s  ", numReceived));
+        sb.append(String.format("%"+justify[1]+"s  ", numSent));
+        sb.append(String.format("%"+justify[2]+"s  ", numReceived));
         sb.append(String.format("%"+justify[3]+"s  ", sentSum));
         sb.append(String.format("%"+justify[4]+"s\n", receiveSum));
         Utils.out(sb.toString());

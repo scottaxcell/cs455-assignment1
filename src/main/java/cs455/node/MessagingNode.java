@@ -177,11 +177,15 @@ public class MessagingNode implements Node {
         for (int i = 0; i < numRounds; i++) {
             int randomIndex = new Random().nextInt(nodes.size());
             String randomNode = nodes.get(randomIndex);
+            if (randomNode == null || randomNode.isEmpty())
+                Utils.debug("wtf");
             String nextHop = routingCache.getNextHop(randomNode);
+            if (nextHop == null || nextHop.isEmpty())
+                Utils.debug("wtf");
             TcpConnection tcpConnection = connectedNodes.get(nextHop);
 
             for (int j = 0; j < NUM_MESSAGES_TO_SEND; j++) {
-                int payload = new Random().nextInt();
+                int payload = 100;//new Random().nextInt();
                 Message message = Message.of(payload, randomNode);
                 trafficTracker.incrementSendTracker();
                 trafficTracker.addSendSummation(payload);

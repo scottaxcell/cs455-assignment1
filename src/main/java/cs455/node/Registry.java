@@ -97,6 +97,14 @@ public class Registry implements Node {
 
         numCompletedNodes.incrementAndGet();
         if (numCompletedNodes.get() == registeredNodes.keySet().size()) {
+            Utils.out("received TASK_COMPLETE message from all nodes\n");
+            Utils.out("waiting 10 seconds for nodes to finalize transmissions...");
+            try {
+                Thread.sleep(10000);
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             statistics = StatisticsCollectorAndDisplay.of(registeredNodes.size());
 
             PullTrafficSummary pullTrafficSummary = PullTrafficSummary.of();
@@ -256,7 +264,7 @@ public class Registry implements Node {
                 try {
                     setupOverlay(Integer.parseInt(input.split(" ")[1]));
                 }
-                catch (ArrayIndexOutOfBoundsException e) {
+                catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -267,7 +275,7 @@ public class Registry implements Node {
                 try {
                     start(Integer.parseInt(input.split(" ")[1]));
                 }
-                catch (ArrayIndexOutOfBoundsException e) {
+                catch (Exception e) {
                     e.printStackTrace();
                 }
             }
