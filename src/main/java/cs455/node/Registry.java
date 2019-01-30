@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 
@@ -23,7 +24,7 @@ public class Registry implements Node {
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private Map<String, TcpSender> registeredNodes = new HashMap<>();
     private OverlayCreator overlayCreator;
-    private int numCompletedNodes;
+    private AtomicInteger numCompletedNodes = new AtomicInteger(0);
     private StatisticsCollectorAndDisplay statistics;
 
     private Registry() {
@@ -94,8 +95,8 @@ public class Registry implements Node {
         TaskComplete taskComplete = (TaskComplete) event;
         Utils.debug("received: " + taskComplete);
 
-        numCompletedNodes++;
-        if (numCompletedNodes == registeredNodes.size()) {
+        numCompletedNodes.incrementAndGet();
+        if (numCompletedNodes.get() == registeredNodes.keySet().size()) {
             statistics = StatisticsCollectorAndDisplay.of(registeredNodes.size());
 
             PullTrafficSummary pullTrafficSummary = PullTrafficSummary.of();
@@ -274,7 +275,7 @@ public class Registry implements Node {
     }
 
     private void start(int numRounds) {
-        numCompletedNodes = 0;
+        numCompletedNodes.set(0);
         TaskInitiate taskInitiate = TaskInitiate.of(numRounds);
         for (TcpSender tcpSender : registeredNodes.values()) {
             try {
