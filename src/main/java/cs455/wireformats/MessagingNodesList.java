@@ -6,7 +6,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class MessagingNodesList implements Message {
+public class MessagingNodesList implements Event {
     private String[] nodes;
 
     private MessagingNodesList(String[] nodes) {
@@ -25,7 +25,7 @@ public class MessagingNodesList implements Message {
     @Override
     public byte[] getBytes() throws IOException {
         /**
-         * Message Type: MESSAGING_NODES_LIST
+         * Event Type: MESSAGING_NODES_LIST
          * Number of peer messaging nodes: X
          * Messaging node1 Info
          * Messaging node2 Info

@@ -7,7 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class DeregisterResponse implements Message {
+public class DeregisterResponse implements Event {
     private int status;
     private String info;
 
@@ -40,7 +40,7 @@ public class DeregisterResponse implements Message {
     @Override
     public byte[] getBytes() throws IOException {
         /**
-         * Message Type (int): DEREGISTER_RESPONSE
+         * Event Type (int): DEREGISTER_RESPONSE
          * Status Code (byte): SUCCESS or FAILURE
          * Additional Info (String):
          */

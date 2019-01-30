@@ -6,7 +6,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class LinkWeights implements Message {
+public class LinkWeights implements Event {
     private String[] links;
 
     private LinkWeights(String[] links) {
@@ -25,7 +25,7 @@ public class LinkWeights implements Message {
     @Override
     public byte[] getBytes() throws IOException {
         /**
-         * Message Type: Link_Weights
+         * Event Type: Link_Weights
          * Number of links: L
          * Linkinfo1
          * Linkinfo2

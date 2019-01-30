@@ -12,7 +12,7 @@ public class MessageFactory {
     private static final int SIZE_OF_INT = 4;
     private static final int SIZE_OF_BYTE = 1;
 
-    public static Message getMessageFromData(byte[] data, Socket socket) throws IOException {
+    public static Event getMessageFromData(byte[] data, Socket socket) throws IOException {
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(data);
         DataInputStream dataInputStream = new DataInputStream(new BufferedInputStream(byteArrayInputStream));
 
@@ -41,7 +41,7 @@ public class MessageFactory {
 
     private static TaskInitiate createTaskInitiative(DataInputStream dataInputStream) throws IOException {
         /**
-         * Message Type: TASK_INITIATE
+         * Event Type: TASK_INITIATE
          * Rounds: X
          */
         int numRounds = dataInputStream.readInt();
@@ -50,7 +50,7 @@ public class MessageFactory {
 
     private static Handshake createHandshake(int dataLength, DataInputStream dataInputStream, Socket socket) throws IOException {
         /**
-         * Message Type (int): HANDSHAKE
+         * Event Type (int): HANDSHAKE
          * IP address (String)
          * Port number (int)
          */
@@ -62,9 +62,9 @@ public class MessageFactory {
         return Handshake.of(ip, port, socket);
     }
 
-    private static Message createLinkWeights(DataInputStream dataInputStream) throws IOException {
+    private static Event createLinkWeights(DataInputStream dataInputStream) throws IOException {
         /**
-         * Message Type: Link_Weights
+         * Event Type: Link_Weights
          * Number of links: L
          * Linkinfo1
          * Linkinfo2
@@ -85,9 +85,9 @@ public class MessageFactory {
         return LinkWeights.of(linkInfos.toArray(new String[linkInfos.size()]));
     }
 
-    private static Message createMessagingNodesList(DataInputStream dataInputStream) throws IOException {
+    private static Event createMessagingNodesList(DataInputStream dataInputStream) throws IOException {
         /**
-         * Message Type: MESSAGING_NODES_LIST
+         * Event Type: MESSAGING_NODES_LIST
          * Number of peer messaging nodes: X
          * Messaging node1 Info
          * Messaging node2 Info
@@ -108,9 +108,9 @@ public class MessageFactory {
         return MessagingNodesList.of(nodeInfos.toArray(new String[nodeInfos.size()]));
     }
 
-    private static Message createDeregisterResponse(int dataLength, DataInputStream dataInputStream) throws IOException {
+    private static Event createDeregisterResponse(int dataLength, DataInputStream dataInputStream) throws IOException {
         /**
-         * Message Type (int): DEREGISTER_RESPONSE
+         * Event Type (int): DEREGISTER_RESPONSE
          * Status Code (byte): SUCCESS or FAILURE
          * Additional Info (String):
          */
@@ -124,7 +124,7 @@ public class MessageFactory {
 
     private static DeregisterRequest createDeregisterRequest(int dataLength, DataInputStream dataInputStream, Socket socket) throws IOException {
         /**
-         * Message Type (int): DEREGISTER_REQUEST
+         * Event Type (int): DEREGISTER_REQUEST
          * Node IP address (String)
          * Node Port number (int)
          */
@@ -136,9 +136,9 @@ public class MessageFactory {
         return DeregisterRequest.of(ip, port, socket);
     }
 
-    private static Message createRegisterResponse(int dataLength, DataInputStream dataInputStream) throws IOException {
+    private static Event createRegisterResponse(int dataLength, DataInputStream dataInputStream) throws IOException {
         /**
-         * Message Type (int): REGISTER_RESPONSE
+         * Event Type (int): REGISTER_RESPONSE
          * Status Code (byte): SUCCESS or FAILURE
          * Additional Info (String):
          */
@@ -152,7 +152,7 @@ public class MessageFactory {
 
     private static RegisterRequest createRegisterRequest(int dataLength, DataInputStream dataInputStream, Socket socket) throws IOException {
         /**
-         * Message Type (int): REGISTER_REQUEST
+         * Event Type (int): REGISTER_REQUEST
          * IP address (String)
          * Port number (int)
          */

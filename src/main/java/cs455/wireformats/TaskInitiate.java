@@ -4,9 +4,8 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Map;
 
-public class TaskInitiate implements Message {
+public class TaskInitiate implements Event {
     private int numRounds;
 
     public TaskInitiate(int numRounds) {
@@ -29,7 +28,7 @@ public class TaskInitiate implements Message {
     @Override
     public byte[] getBytes() throws IOException {
         /**
-         * Message Type: TASK_INITIATE
+         * Event Type: TASK_INITIATE
          * Rounds: X
          */
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();

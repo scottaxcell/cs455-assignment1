@@ -6,7 +6,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-public class Handshake implements Message {
+public class Handshake implements Event {
     private String ip;
     private int port;
     private Socket socket;
@@ -41,7 +41,7 @@ public class Handshake implements Message {
     @Override
     public byte[] getBytes() throws IOException {
         /**
-         * Message Type (int): HANDSHAKE
+         * Event Type (int): HANDSHAKE
          * Node IP address (String)
          * Node Port number (int)
          */

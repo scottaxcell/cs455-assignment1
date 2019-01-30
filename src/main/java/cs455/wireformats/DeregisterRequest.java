@@ -6,7 +6,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-public class DeregisterRequest implements Message {
+public class DeregisterRequest implements Event {
     private String ip;
     private int port;
     private Socket socket;
@@ -41,7 +41,7 @@ public class DeregisterRequest implements Message {
     @Override
     public byte[] getBytes() throws IOException {
         /**
-         * Message Type (int): DEREGISTER_REQUEST
+         * Event Type (int): DEREGISTER_REQUEST
          * Node IP address (String)
          * Node Port number (int)
          */

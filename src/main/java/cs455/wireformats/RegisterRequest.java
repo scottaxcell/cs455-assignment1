@@ -6,7 +6,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-public class RegisterRequest implements Message {
+public class RegisterRequest implements Event {
     private String ip;
     private int port;
     private Socket socket;
@@ -41,7 +41,7 @@ public class RegisterRequest implements Message {
     @Override
     public byte[] getBytes() throws IOException {
         /**
-         * Message Type (int): REGISTER_REQUEST
+         * Event Type (int): REGISTER_REQUEST
          * IP address (String)
          * Port number (int)
          */

@@ -39,10 +39,10 @@ public class Registry implements Node {
     }
 
     @Override
-    public void onMessage(Message message) {
+    public void onEvent(Event event) {
         executor.execute(() -> {
             try {
-                handleMessage(message);
+                handleEvent(event);
             }
             catch (IOException e) {
                 e.printStackTrace();
@@ -50,27 +50,27 @@ public class Registry implements Node {
         });
     }
 
-    private void handleMessage(Message message) throws IOException {
-        int protocol = message.getProtocol();
+    private void handleEvent(Event event) throws IOException {
+        int protocol = event.getProtocol();
         switch (protocol) {
             case Protocol.REGISTER_REQUEST:
-                handleRegisterRequest(message);
+                handleRegisterRequest(event);
                 break;
             case Protocol.DEREGISTER_REQUEST:
-                handleDeregisterRequest(message);
+                handleDeregisterRequest(event);
                 break;
             default:
-                throw new RuntimeException(String.format("received an unknown message with protocol %d", protocol));
+                throw new RuntimeException(String.format("received an unknown event with protocol %d", protocol));
         }
     }
 
-    private void handleDeregisterRequest(Message message) throws IOException {
-        if (!(message instanceof DeregisterRequest)) {
-            Utils.error("message of " + message.getClass() + " unexpected");
+    private void handleDeregisterRequest(Event event) throws IOException {
+        if (!(event instanceof DeregisterRequest)) {
+            Utils.error("event of " + event.getClass() + " unexpected");
             return;
         }
 
-        DeregisterRequest request = (DeregisterRequest) message;
+        DeregisterRequest request = (DeregisterRequest) event;
         Utils.debug("received: " + request);
         Socket socket = request.getSocket();
         TcpSender tcpSender = TcpSender.of(socket);
@@ -125,13 +125,13 @@ public class Registry implements Node {
         }
     }
 
-    private void handleRegisterRequest(Message message) throws IOException {
-        if (!(message instanceof RegisterRequest)) {
-            Utils.error("message of " + message.getClass() + " unexpected");
+    private void handleRegisterRequest(Event event) throws IOException {
+        if (!(event instanceof RegisterRequest)) {
+            Utils.error("event of " + event.getClass() + " unexpected");
             return;
         }
 
-        RegisterRequest request = (RegisterRequest) message;
+        RegisterRequest request = (RegisterRequest) event;
         Utils.debug("received: " + request);
         Socket socket = request.getSocket();
         TcpSender tcpSender = TcpSender.of(socket);

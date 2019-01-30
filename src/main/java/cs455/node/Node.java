@@ -1,7 +1,7 @@
 package cs455.node;
 
-import cs455.wireformats.Message;
+import cs455.wireformats.Event;
 
 public interface Node {
-    void onMessage(Message message);
+    void onEvent(Event event);
 }

@@ -7,7 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class RegisterResponse implements Message {
+public class RegisterResponse implements Event {
     private int status;
     private String info;
 
@@ -28,7 +28,7 @@ public class RegisterResponse implements Message {
     @Override
     public byte[] getBytes() throws IOException {
         /**
-         * Message Type (int): REGISTER_RESPONSE
+         * Event Type (int): REGISTER_RESPONSE
          * Status Code (byte): SUCCESS or FAILURE
          * Additional Info (String):
          */

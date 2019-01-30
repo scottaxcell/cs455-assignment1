@@ -1,7 +1,7 @@
 package cs455.transport;
 
 import cs455.node.Node;
-import cs455.wireformats.Message;
+import cs455.wireformats.Event;
 import cs455.wireformats.MessageFactory;
 
 import java.io.DataInputStream;
@@ -34,8 +34,8 @@ public class TcpReceiver implements Runnable {
                 int dataLength = dataInputStream.readInt();
                 byte[] data = new byte[dataLength];
                 dataInputStream.readFully(data, 0, dataLength);
-                Message message = MessageFactory.getMessageFromData(data, socket);
-                node.onMessage(message);
+                Event event = MessageFactory.getMessageFromData(data, socket);
+                node.onEvent(event);
             }
             catch (IOException e) {
                 e.printStackTrace();

@@ -1,19 +1,14 @@
 package cs455.node;
 
-import com.sun.xml.internal.ws.api.pipe.TubelineAssembler;
 import cs455.dijkstra.RoutingCache;
 import cs455.transport.TcpConnection;
-import cs455.transport.TcpSender;
 import cs455.transport.TcpServer;
 import cs455.util.Link;
 import cs455.util.Utils;
 import cs455.wireformats.*;
 
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -75,43 +70,43 @@ public class MessagingNode implements Node {
     }
 
     @Override
-    public void onMessage(Message message) {
-        executor.execute(() -> handleMessage(message));
+    public void onEvent(Event event) {
+        executor.execute(() -> handleEvent(event));
     }
 
-    private void handleMessage(Message message) {
-        int protocol = message.getProtocol();
+    private void handleEvent(Event event) {
+        int protocol = event.getProtocol();
         switch (protocol) {
             case Protocol.REGISTER_RESPONSE:
-                handleRegisterResponse(message);
+                handleRegisterResponse(event);
                 break;
             case Protocol.DEREGISTER_RESPONSE:
-                handleDeregisterResponse(message);
+                handleDeregisterResponse(event);
                 break;
             case Protocol.MESSAGING_NODES_LIST:
-                handleMessagingNodesList(message);
+                handleMessagingNodesList(event);
                 break;
             case Protocol.HANDSHAKE:
-                handleHandshake(message);
+                handleHandshake(event);
                 break;
             case Protocol.LINK_WEIGHTS:
-                handleLinkWeights(message);
+                handleLinkWeights(event);
                 break;
             case Protocol.TASK_INITIATE:
-                handleTaskInitiative(message);
+                handleTaskInitiative(event);
                 break;
             default:
-                throw new RuntimeException(String.format("received an unknown message with protocol %d", protocol));
+                throw new RuntimeException(String.format("received an unknown event with protocol %d", protocol));
         }
     }
 
-    private void handleTaskInitiative(Message message) {
-        if (!(message instanceof TaskInitiate)) {
-            Utils.error("message of " + message.getClass() + " unexpected");
+    private void handleTaskInitiative(Event event) {
+        if (!(event instanceof TaskInitiate)) {
+            Utils.error("event of " + event.getClass() + " unexpected");
             return;
         }
 
-        TaskInitiate taskInitiate = (TaskInitiate) message;
+        TaskInitiate taskInitiate = (TaskInitiate) event;
         int numRounds = taskInitiate.getNumRounds();
 
         List<String> nodes = routingCache.getAllOtherNodes();
@@ -128,13 +123,13 @@ public class MessagingNode implements Node {
         }
     }
 
-    private void handleLinkWeights(Message message) {
-        if (!(message instanceof LinkWeights)) {
-            Utils.error("message of " + message.getClass() + " unexpected");
+    private void handleLinkWeights(Event event) {
+        if (!(event instanceof LinkWeights)) {
+            Utils.error("event of " + event.getClass() + " unexpected");
             return;
         }
 
-        LinkWeights linkWeights = (LinkWeights) message;
+        LinkWeights linkWeights = (LinkWeights) event;
         Utils.debug("received: " + linkWeights);
 
         List<Link> links = new ArrayList<>();
@@ -149,13 +144,13 @@ public class MessagingNode implements Node {
         Utils.info("Link weights are received and processed. Ready to send messages.");
     }
 
-    private void handleHandshake(Message message) {
-        if (!(message instanceof Handshake)) {
-            Utils.error("message of " + message.getClass() + " unexpected");
+    private void handleHandshake(Event event) {
+        if (!(event instanceof Handshake)) {
+            Utils.error("event of " + event.getClass() + " unexpected");
             return;
         }
 
-        Handshake handshake = (Handshake) message;
+        Handshake handshake = (Handshake) event;
         Utils.debug("received: " + handshake);
         Socket socket = handshake.getSocket();
         String address = String.format("%s:%d", handshake.getIp(), handshake.getPort());
@@ -163,13 +158,13 @@ public class MessagingNode implements Node {
         connectedNodes.put(address, tcpConnection);
     }
 
-    private void handleMessagingNodesList(Message message) {
-        if (!(message instanceof MessagingNodesList)) {
-            Utils.error("message of " + message.getClass() + " unexpected");
+    private void handleMessagingNodesList(Event event) {
+        if (!(event instanceof MessagingNodesList)) {
+            Utils.error("event of " + event.getClass() + " unexpected");
             return;
         }
 
-        MessagingNodesList messagingNodesList = (MessagingNodesList) message;
+        MessagingNodesList messagingNodesList = (MessagingNodesList) event;
         Utils.debug("received: " + messagingNodesList);
 
         for (String node : messagingNodesList.getNodes()) {
@@ -192,24 +187,24 @@ public class MessagingNode implements Node {
         Utils.info(String.format("All connections are established. Number of connections: %d", connectedNodes.size()));
     }
 
-    private void handleRegisterResponse(Message message) {
-        if (!(message instanceof RegisterResponse)) {
-            Utils.error("message of " + message.getClass() + " unexpected");
+    private void handleRegisterResponse(Event event) {
+        if (!(event instanceof RegisterResponse)) {
+            Utils.error("event of " + event.getClass() + " unexpected");
             return;
         }
 
         // TODO print if failure
-        RegisterResponse response = (RegisterResponse) message;
+        RegisterResponse response = (RegisterResponse) event;
         Utils.debug("received: " + response);
     }
 
-    private void handleDeregisterResponse(Message message) {
-        if (!(message instanceof DeregisterResponse)) {
-            Utils.error("message of " + message.getClass() + " unexpected");
+    private void handleDeregisterResponse(Event event) {
+        if (!(event instanceof DeregisterResponse)) {
+            Utils.error("event of " + event.getClass() + " unexpected");
             return;
         }
 
-        DeregisterResponse response = (DeregisterResponse) message;
+        DeregisterResponse response = (DeregisterResponse) event;
         Utils.debug("received: " + response);
 
         // TODO print if failure
