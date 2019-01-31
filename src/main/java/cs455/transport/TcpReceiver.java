@@ -7,6 +7,7 @@ import cs455.wireformats.EventFactory;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class TcpReceiver implements Runnable {
     private Socket socket;
@@ -37,8 +38,12 @@ public class TcpReceiver implements Runnable {
                 Event event = EventFactory.getMessageFromData(data, socket);
                 node.onEvent(event);
             }
-            catch (IOException e) {
-                e.printStackTrace();
+            catch (SocketException se){
+                se.printStackTrace();
+                break;
+            }
+            catch (IOException ioe) {
+                ioe.printStackTrace();
                 break;
             }
         }

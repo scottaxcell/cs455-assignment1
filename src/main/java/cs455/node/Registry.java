@@ -44,14 +44,14 @@ public class Registry implements Node {
 
     @Override
     public void onEvent(Event event) {
-        executor.execute(() -> {
+//        executor.execute(() -> {
             try {
                 handleEvent(event);
             }
             catch (IOException e) {
                 e.printStackTrace();
             }
-        });
+//        });
     }
 
     private void handleEvent(Event event) throws IOException {
@@ -97,8 +97,8 @@ public class Registry implements Node {
 
         numCompletedNodes.incrementAndGet();
         if (numCompletedNodes.get() == registeredNodes.keySet().size()) {
-            Utils.out("received TASK_COMPLETE message from all nodes\n");
-            Utils.out("waiting 10 seconds for nodes to finalize transmissions...");
+            Utils.info("received TASK_COMPLETE message from all nodes\n");
+            Utils.info("waiting 10 seconds for nodes to finalize transmissions...");
             try {
                 Thread.sleep(10000);
             }
@@ -336,7 +336,8 @@ public class Registry implements Node {
         }
 
         for (String node : registeredNodes.keySet()) {
-            executor.execute(() -> sendMessagingNodesList(node));
+//            executor.execute(() -> sendMessagingNodesList(node));
+            sendMessagingNodesList(node);
         }
     }
 

@@ -2,6 +2,7 @@ package cs455.node;
 
 import cs455.dijkstra.RoutingCache;
 import cs455.transport.TcpConnection;
+import cs455.transport.TcpSender;
 import cs455.transport.TcpServer;
 import cs455.util.Link;
 import cs455.util.TrafficTracker;
@@ -22,7 +23,7 @@ public class MessagingNode implements Node {
     private TcpConnection registryTcpConnection;
     private TcpServer tcpServer;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
-    private Map<String, TcpConnection> connectedNodes = new HashMap<>();
+    private Map<String, TcpSender> connectedNodes = new HashMap<>();
     private RoutingCache routingCache;
     private TrafficTracker trafficTracker = TrafficTracker.of();
 
@@ -73,7 +74,8 @@ public class MessagingNode implements Node {
 
     @Override
     public void onEvent(Event event) {
-        executor.execute(() -> handleEvent(event));
+//        executor.execute(() -> handleEvent(event));
+        handleEvent(event);
     }
 
     private void handleEvent(Event event) {
@@ -150,12 +152,14 @@ public class MessagingNode implements Node {
         }
         else {
             String nextHop = routingCache.getNextHop(destination);
-            TcpConnection tcpConnection = connectedNodes.get(nextHop);
+            if (nextHop == null || nextHop.isEmpty())
+                Utils.debug("wtf");
+            TcpSender tcpSender = connectedNodes.get(nextHop);
             message = Message.of(payload, nextHop);
             trafficTracker.incrementRelayTracker();
             try {
-                tcpConnection.send(message.getBytes());
-                Utils.debug(String.format("sent [%s]: %s", tcpConnection.getSocket().getRemoteSocketAddress(), message));
+                tcpSender.send(message.getBytes());
+                Utils.debug(String.format("sent [%s]: %s", tcpSender.getSocket().getRemoteSocketAddress(), message));
             }
             catch (IOException e) {
                 e.printStackTrace();
@@ -182,16 +186,16 @@ public class MessagingNode implements Node {
             String nextHop = routingCache.getNextHop(randomNode);
             if (nextHop == null || nextHop.isEmpty())
                 Utils.debug("wtf");
-            TcpConnection tcpConnection = connectedNodes.get(nextHop);
+            TcpSender tcpSender = connectedNodes.get(nextHop);
 
             for (int j = 0; j < NUM_MESSAGES_TO_SEND; j++) {
-                int payload = 100;//new Random().nextInt();
+                int payload = new Random().nextInt();
                 Message message = Message.of(payload, randomNode);
                 trafficTracker.incrementSendTracker();
                 trafficTracker.addSendSummation(payload);
                 try {
-                    tcpConnection.send(message.getBytes());
-                    Utils.debug(String.format("sent [%s]: %s", tcpConnection.getSocket().getRemoteSocketAddress(), message));
+                    tcpSender.send(message.getBytes());
+                    Utils.debug(String.format("sent [%s]: %s", tcpSender.getSocket().getRemoteSocketAddress(), message));
                 }
                 catch (IOException e) {
                     e.printStackTrace();
@@ -240,8 +244,15 @@ public class MessagingNode implements Node {
         Utils.debug("received: " + handshake);
         Socket socket = handshake.getSocket();
         String address = String.format("%s:%d", handshake.getIp(), handshake.getPort());
-        TcpConnection tcpConnection = TcpConnection.of(socket, this);
-        connectedNodes.put(address, tcpConnection);
+        try {
+            TcpSender tcpSender = TcpSender.of(socket);
+            connectedNodes.put(address, tcpSender);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Utils.debug(String.format("Connected to %d nodes", connectedNodes.size()));
     }
 
     private void handleMessagingNodesList(Event event) {
@@ -260,11 +271,11 @@ public class MessagingNode implements Node {
 
             try {
                 Socket socket = new Socket(ip, port);
-                TcpConnection tcpConnection = TcpConnection.of(socket, this);
-                connectedNodes.put(node, tcpConnection);
-                Handshake handshake = Handshake.of(tcpServer.getIp(), tcpServer.getPort(), tcpConnection.getSocket());
-                tcpConnection.send(handshake.getBytes());
-                Utils.debug(String.format("sent [%s]: %s", tcpConnection.getSocket().getRemoteSocketAddress(), handshake));
+                TcpSender tcpSender = TcpSender.of(socket);
+                connectedNodes.put(node, tcpSender);
+                Handshake handshake = Handshake.of(tcpServer.getIp(), tcpServer.getPort(), tcpSender.getSocket());
+                tcpSender.send(handshake.getBytes());
+                Utils.debug(String.format("sent [%s]: %s", tcpSender.getSocket().getRemoteSocketAddress(), handshake));
             }
             catch (IOException e) {
                 e.printStackTrace();
@@ -318,7 +329,8 @@ public class MessagingNode implements Node {
                 printShortestPath();
             }
             else if (input.startsWith("exit-overlay"))
-                executor.execute(this::sendDeregistrationRequest);
+//                executor.execute(this::sendDeregistrationRequest);
+                sendDeregistrationRequest();
         }
     }
 

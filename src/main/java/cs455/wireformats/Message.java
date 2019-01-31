@@ -1,5 +1,7 @@
 package cs455.wireformats;
 
+import cs455.util.Utils;
+
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -52,6 +54,10 @@ public class Message implements Event {
         byteArrayOutputStream.close();
         dataOutputStream.close();
 
+        if (destination.length() == 0)
+            Utils.debug("wtf");
+        if (data.length == 8)
+            Utils.debug("wtf mate");
         return data;
     }
 
