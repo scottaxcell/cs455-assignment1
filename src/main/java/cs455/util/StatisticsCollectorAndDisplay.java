@@ -46,8 +46,8 @@ public class StatisticsCollectorAndDisplay {
         sb.append(String.format("%"+justify[5]+"s\n", "# Relayed"));
         Utils.out(sb.toString());
 
-        sb = new StringBuilder();
         for (TrafficSummary trafficSummary : trafficSummaries) {
+            sb = new StringBuilder();
             sb.append(String.format("%-"+justify[0]+"s  ", trafficSummary.getNode()));
             sb.append(String.format("%"+justify[1]+"s  ", trafficSummary.getNumSent()));
             sb.append(String.format("%"+justify[2]+"s  ", trafficSummary.getNumReceived()));
