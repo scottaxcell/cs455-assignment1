@@ -1,6 +1,7 @@
 package cs455.dijkstra;
 
 import cs455.util.Link;
+import cs455.util.Utils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,6 +26,12 @@ public class RoutingCache {
 
     public String getNextHop(String sink) {
         return nextHop.get(sink);
+    }
+
+    public void dumpNextHop() {
+        Utils.out("NEXT HOP\n========\n");
+        nextHop.entrySet().stream()
+            .forEach(e -> Utils.out(e.getKey() + " : " + e.getValue() + "\n"));
     }
 
     public String getShortestPathsForPrinting() {

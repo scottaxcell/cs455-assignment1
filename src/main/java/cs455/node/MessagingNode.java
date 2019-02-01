@@ -2,6 +2,7 @@ package cs455.node;
 
 import cs455.dijkstra.RoutingCache;
 import cs455.transport.TcpConnection;
+import cs455.transport.TcpReceiver;
 import cs455.transport.TcpSender;
 import cs455.transport.TcpServer;
 import cs455.util.Link;
@@ -273,6 +274,9 @@ public class MessagingNode implements Node {
                 Socket socket = new Socket(ip, port);
                 TcpSender tcpSender = TcpSender.of(socket);
                 connectedNodes.put(node, tcpSender);
+                TcpReceiver tcpReceiver = TcpReceiver.of(socket, this);
+                Thread thread = new Thread(tcpReceiver);
+                thread.start();
                 Handshake handshake = Handshake.of(tcpServer.getIp(), tcpServer.getPort(), tcpSender.getSocket());
                 tcpSender.send(handshake.getBytes());
                 Utils.debug(String.format("sent [%s]: %s", tcpSender.getSocket().getRemoteSocketAddress(), handshake));

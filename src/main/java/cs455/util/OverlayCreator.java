@@ -85,7 +85,7 @@ public class OverlayCreator {
         if (cr == 1) {
             constructLinearTopology();
             for (Link link : links)
-                addSink(link.getSource(), link.getSink());
+                addConnection(link.getSource(), link.getSink());
             return;
         }
 
@@ -110,8 +110,8 @@ public class OverlayCreator {
         }
 
         for (Link link : links) {
-            addSink(link.getSource(), link.getSink());
-            addSink(link.getSink(), link.getSource());
+            addConnection(link.getSource(), link.getSink());
+            addConnection(link.getSink(), link.getSource());
         }
     }
 
@@ -160,7 +160,7 @@ public class OverlayCreator {
             links.add(link);
     }
 
-    private void addSink(String source, String sink) {
+    private void addConnection(String source, String sink) {
         if (!connections.get(source).contains(sink))
             connections.get(source).add(sink);
     }
