@@ -3,6 +3,7 @@ package cs455.util;
 import cs455.wireformats.TrafficSummary;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class StatisticsCollectorAndDisplay {
@@ -34,35 +35,41 @@ public class StatisticsCollectorAndDisplay {
     }
 
     private void printSummary() {
-        StringBuilder sb = new StringBuilder("TRAFFIC SUMMARY\n===============\n");
+        StringBuilder sb = new StringBuilder("\nTRAFFIC SUMMARY\n");
+        Utils.out(sb.toString());
 
         int[] justify = getColumnJustifications();
 
-        sb.append(String.format("%-"+justify[0]+"s  ", "Node"));
-        sb.append(String.format("%"+justify[1]+"s  ", "# Sent"));
-        sb.append(String.format("%"+justify[2]+"s  ", "# Received"));
-        sb.append(String.format("%"+justify[3]+"s  ", "Sent Sum"));
-        sb.append(String.format("%"+justify[4]+"s  ", "Received Sum"));
+        sb = new StringBuilder();
+        sb.append(String.format("%-"+justify[0]+"s | ", "Node"));
+        sb.append(String.format("%"+justify[1]+"s | ", "# Sent"));
+        sb.append(String.format("%"+justify[2]+"s | ", "# Received"));
+        sb.append(String.format("%"+justify[3]+"s | ", "Sent Sum"));
+        sb.append(String.format("%"+justify[4]+"s | ", "Received Sum"));
         sb.append(String.format("%"+justify[5]+"s\n", "# Relayed"));
-        Utils.out(sb.toString());
+
+        int headerSize = sb.toString().length();
+        sb.append(String.join("", Collections.nCopies(headerSize, "=")) + "\n");
+        Utils.out(String.join("", Collections.nCopies(headerSize, "-")) + "\n" + sb.toString());
 
         for (TrafficSummary trafficSummary : trafficSummaries) {
             sb = new StringBuilder();
-            sb.append(String.format("%-"+justify[0]+"s  ", trafficSummary.getNode()));
-            sb.append(String.format("%"+justify[1]+"s  ", trafficSummary.getNumSent()));
-            sb.append(String.format("%"+justify[2]+"s  ", trafficSummary.getNumReceived()));
-            sb.append(String.format("%"+justify[3]+"s  ", trafficSummary.getSentSum()));
-            sb.append(String.format("%"+justify[4]+"s  ", trafficSummary.getReceivedSum()));
+            sb.append(String.format("%-"+justify[0]+"s | ", trafficSummary.getNode()));
+            sb.append(String.format("%"+justify[1]+"s | ", trafficSummary.getNumSent()));
+            sb.append(String.format("%"+justify[2]+"s | ", trafficSummary.getNumReceived()));
+            sb.append(String.format("%"+justify[3]+"s | ", trafficSummary.getSentSum()));
+            sb.append(String.format("%"+justify[4]+"s | ", trafficSummary.getReceivedSum()));
             sb.append(String.format("%"+justify[5]+"s\n", trafficSummary.getNumRelayed()));
             Utils.out(sb.toString());
         }
 
         sb = new StringBuilder();
-        sb.append(String.format("%-"+justify[0]+"s  ", "Sum"));
-        sb.append(String.format("%"+justify[1]+"s  ", numSent));
-        sb.append(String.format("%"+justify[2]+"s  ", numReceived));
-        sb.append(String.format("%"+justify[3]+"s  ", sentSum));
-        sb.append(String.format("%"+justify[4]+"s\n", receiveSum));
+        sb.append(String.join("", Collections.nCopies(headerSize, "-")) + "\n");
+        sb.append(String.format("%-"+justify[0]+"s | ", "Sum"));
+        sb.append(String.format("%"+justify[1]+"s | ", numSent));
+        sb.append(String.format("%"+justify[2]+"s | ", numReceived));
+        sb.append(String.format("%"+justify[3]+"s | ", sentSum));
+        sb.append(String.format("%"+justify[4]+"s |\n", receiveSum));
         Utils.out(sb.toString());
     }
 

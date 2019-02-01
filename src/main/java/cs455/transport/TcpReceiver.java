@@ -43,6 +43,7 @@ public class TcpReceiver implements Runnable {
                 break;
             }
             catch (IOException ioe) {
+                // TODO socket disconnects
                 ioe.printStackTrace();
                 break;
             }
