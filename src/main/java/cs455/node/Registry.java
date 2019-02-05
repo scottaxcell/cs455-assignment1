@@ -99,12 +99,12 @@ public class Registry implements Node {
         numCompletedNodes.incrementAndGet();
         if (numCompletedNodes.get() == registeredNodes.keySet().size()) {
             int numSeconds = 30;
-            Utils.info("received TASK_COMPLETE message from all nodes\n");
-            Utils.info(String.format("waiting %d seconds for nodes to finalize transmissions...", numSeconds));
+            Utils.info("Received TASK_COMPLETE message from all nodes");
+            Utils.info(String.format("Waiting %d seconds for nodes to finalize transmissions...", numSeconds));
             try {
                 for (int i = 0; i < numSeconds; i++) {
                     Thread.sleep(1000);
-                    Utils.out("...");
+                    Utils.out(".");
                 }
                 Utils.out("\n");
             }
@@ -253,8 +253,6 @@ public class Registry implements Node {
         Scanner scanner = new Scanner(System.in);
         scanner.useDelimiter(Pattern.compile("[\\r\\n;]+"));
 
-        Utils.out("Registry\n========\n");
-
         while (true) {
             Utils.out("\n");
 
@@ -363,6 +361,11 @@ public class Registry implements Node {
         catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public String getType() {
+        return "Registry";
     }
 
     private static void printHelpAndExit() {

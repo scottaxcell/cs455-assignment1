@@ -330,8 +330,6 @@ public class MessagingNode implements Node {
         Scanner scanner = new Scanner(System.in);
         scanner.useDelimiter(Pattern.compile("[\\r\\n;]+"));
 
-        Utils.out("MessagingNode\n=============\n");
-
         while (true) {
             Utils.out("\n");
 
@@ -362,6 +360,11 @@ public class MessagingNode implements Node {
         catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public String getType() {
+        return "MessagingNode";
     }
 
     private static void printHelpAndExit() {

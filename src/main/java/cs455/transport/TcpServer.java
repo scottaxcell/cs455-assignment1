@@ -1,6 +1,8 @@
 package cs455.transport;
 
+import cs455.node.MessagingNode;
 import cs455.node.Node;
+import cs455.node.Registry;
 import cs455.util.Utils;
 
 import java.io.IOException;
@@ -16,7 +18,7 @@ public class TcpServer implements Runnable {
         this.node = node;
         try {
             serverSocket = new ServerSocket(port);
-            Utils.debug("TcpServer started on " + getIp() + ":" + getPort());
+            Utils.info(String.format("%s TCP server started on %s:%d", node.getType(), getIp(), getPort()));
         }
         catch (IOException e) {
             e.printStackTrace();

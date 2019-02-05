@@ -50,7 +50,7 @@ public class StatisticsCollectorAndDisplay {
         sb.append(String.format("%"+justify[4]+"s | ", "Received Sum"));
         sb.append(String.format("%"+justify[5]+"s\n", "# Relayed"));
 
-        int headerSize = sb.toString().length();
+        int headerSize = sb.toString().length() - 1;
         sb.append(String.join("", Collections.nCopies(headerSize, "=")) + "\n");
         Utils.out(String.join("", Collections.nCopies(headerSize, "-")) + "\n" + sb.toString());
 
