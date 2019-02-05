@@ -7,7 +7,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class StatisticsCollectorAndDisplay {
-    private int numNodes;
+    private final int numNodes;
+    private final int numRounds;
     private List<TrafficSummary> trafficSummaries = new ArrayList<>();
     private int numSent;
     private int numReceived;
@@ -15,12 +16,13 @@ public class StatisticsCollectorAndDisplay {
     private long receiveSum;
     private static final String[] columnHeaders = new String[]{"Node", "# Sent", "# Received", "Sent Sum", "Received Sum", "# Relayed"};
 
-    private StatisticsCollectorAndDisplay(int numNodes) {
+    private StatisticsCollectorAndDisplay(int numNodes, int numRounds) {
         this.numNodes = numNodes;
+        this.numRounds = numRounds;
     }
 
-    public static StatisticsCollectorAndDisplay of(int numNodes) {
-        return new StatisticsCollectorAndDisplay(numNodes);
+    public static StatisticsCollectorAndDisplay of(int numNodes, int numRounds) {
+        return new StatisticsCollectorAndDisplay(numNodes, numRounds);
     }
 
     public synchronized void addTrafficSummary(TrafficSummary trafficSummary) {
@@ -35,7 +37,7 @@ public class StatisticsCollectorAndDisplay {
     }
 
     private void printSummary() {
-        StringBuilder sb = new StringBuilder("\nTRAFFIC SUMMARY\n");
+        StringBuilder sb = new StringBuilder(String.format("\nTRAFFIC SUMMARY (# Rounds = %d)\n", numRounds));
         Utils.out(sb.toString());
 
         int[] justify = getColumnJustifications();

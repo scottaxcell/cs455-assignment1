@@ -19,15 +19,17 @@ import java.util.regex.Pattern;
 
 
 public class Registry implements Node {
-    private int port = 50700;
+    private int port;
     private TcpServer tcpServer;
     private ExecutorService executor = Executors.newSingleThreadExecutor();
     private Map<String, TcpSender> registeredNodes = new HashMap<>();
     private OverlayCreator overlayCreator;
     private AtomicInteger numCompletedNodes = new AtomicInteger(0);
     private StatisticsCollectorAndDisplay statistics;
+    private int numRounds;
 
-    private Registry() {
+    private Registry(int port) {
+        this.port = port;
     }
 
     private void go() {
@@ -37,9 +39,8 @@ public class Registry implements Node {
         handleCmdLineInput();
     }
 
-    private static Registry of(String[] args) {
-        // TODO handle args - port-number
-        return new Registry();
+    private static Registry of(int port) {
+        return new Registry(port);
     }
 
     @Override
@@ -97,15 +98,20 @@ public class Registry implements Node {
 
         numCompletedNodes.incrementAndGet();
         if (numCompletedNodes.get() == registeredNodes.keySet().size()) {
+            int numSeconds = 30;
             Utils.info("received TASK_COMPLETE message from all nodes\n");
-            Utils.info("waiting 10 seconds for nodes to finalize transmissions...");
+            Utils.info(String.format("waiting %d seconds for nodes to finalize transmissions...", numSeconds));
             try {
-                Thread.sleep(10000);
+                for (int i = 0; i < numSeconds; i++) {
+                    Thread.sleep(1000);
+                    Utils.out("...");
+                }
+                Utils.out("\n");
             }
             catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            statistics = StatisticsCollectorAndDisplay.of(registeredNodes.size());
+            statistics = StatisticsCollectorAndDisplay.of(registeredNodes.size(), numRounds);
 
             PullTrafficSummary pullTrafficSummary = PullTrafficSummary.of();
             for (TcpSender tcpSender : registeredNodes.values()) {
@@ -250,7 +256,7 @@ public class Registry implements Node {
         Utils.out("Registry\n========\n");
 
         while (true) {
-            Utils.out("$ ");
+            Utils.out("\n");
 
             input = scanner.next();
 
@@ -283,7 +289,13 @@ public class Registry implements Node {
     }
 
     private void start(int numRounds) {
+        if (overlayCreator == null) {
+            Utils.error("failed to start messaging. setup-overlay <num> expected to be called first.");
+            return;
+        }
+
         numCompletedNodes.set(0);
+        this.numRounds = numRounds;
         TaskInitiate taskInitiate = TaskInitiate.of(numRounds);
         for (TcpSender tcpSender : registeredNodes.values()) {
             try {
@@ -359,10 +371,11 @@ public class Registry implements Node {
     }
 
     public static void main(String[] args) {
-//        if (args.length != 1)
-//            printHelpAndExit();
+        if (args.length != 1)
+            printHelpAndExit();
 
-        Registry registry = Registry.of(args);
+        int registryPort = Integer.parseInt(args[0]);
+        Registry registry = Registry.of(registryPort);
         registry.go();
     }
 }

@@ -153,8 +153,6 @@ public class MessagingNode implements Node {
         }
         else {
             String nextHop = routingCache.getNextHop(destination);
-            if (nextHop == null || nextHop.isEmpty())
-                Utils.debug("wtf");
             TcpSender tcpSender = connectedNodes.get(nextHop);
             message = Message.of(payload, nextHop);
             trafficTracker.incrementRelayTracker();
@@ -178,15 +176,16 @@ public class MessagingNode implements Node {
         Utils.debug("received: " + taskInitiate);
 
         int numRounds = taskInitiate.getNumRounds();
-        List<String> nodes = routingCache.getAllOtherNodes();
+        List<String> nodes = routingCache.getOtherNodes();
+        if (nodes.size() == 0) {
+            Utils.error("unable to send messages. no connected nodes");
+            return;
+        }
+
         for (int i = 0; i < numRounds; i++) {
             int randomIndex = new Random().nextInt(nodes.size());
             String randomNode = nodes.get(randomIndex);
-            if (randomNode == null || randomNode.isEmpty())
-                Utils.debug("wtf");
             String nextHop = routingCache.getNextHop(randomNode);
-            if (nextHop == null || nextHop.isEmpty())
-                Utils.debug("wtf");
             TcpSender tcpSender = connectedNodes.get(nextHop);
 
             for (int j = 0; j < NUM_MESSAGES_TO_SEND; j++) {
@@ -285,6 +284,14 @@ public class MessagingNode implements Node {
                 e.printStackTrace();
             }
         }
+        try {
+            // wait 3 seconds for other nodes to connect, so that the following
+            // message to stdout prints the correct number of connected nodes.
+            Thread.sleep(3000);
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         Utils.info(String.format("All connections are established. Number of connections: %d", connectedNodes.size()));
     }
 
@@ -326,7 +333,7 @@ public class MessagingNode implements Node {
         Utils.out("MessagingNode\n=============\n");
 
         while (true) {
-            Utils.out("$ ");
+            Utils.out("\n");
 
             input = scanner.next();
             if (input.startsWith("print-shortest-path")) {
@@ -339,6 +346,10 @@ public class MessagingNode implements Node {
     }
 
     private void printShortestPath() {
+        if (routingCache == null) {
+            Utils.error("failed to print shortest path. routing cache has not been initialized");
+            return;
+        }
         Utils.out(routingCache.getShortestPathsForPrinting());
     }
 

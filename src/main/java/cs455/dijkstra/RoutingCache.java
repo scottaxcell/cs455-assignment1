@@ -60,7 +60,7 @@ public class RoutingCache {
         return stringBuilder.toString();
     }
 
-    public List<String> getAllOtherNodes() {
+    public List<String> getOtherNodes() {
         return graph.keySet().stream()
             .filter(n -> !n.equals(startNode))
             .collect(Collectors.toList());

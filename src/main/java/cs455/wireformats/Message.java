@@ -54,10 +54,6 @@ public class Message implements Event {
         byteArrayOutputStream.close();
         dataOutputStream.close();
 
-        if (destination.length() == 0)
-            Utils.debug("wtf");
-        if (data.length == 8)
-            Utils.debug("wtf mate");
         return data;
     }
 
