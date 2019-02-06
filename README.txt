@@ -25,8 +25,8 @@ Run:
 Classes:
 
 node
- - Node.java
- - MessagingNode.java
+ - Node.java : interface that defines the onEvent method
+ - MessagingNode.java :
  - Registry.java
 
 wireformats
@@ -48,17 +48,17 @@ wireformats
  - Message.java
 
 util
- - TrafficTracker.java
- - Link.java
- - StatisticsCollectorAndDisplay.java
- - Utils.java
- - OverlayCreator.java
+ - TrafficTracker.java : responsible for tracking transmission statistics on a node
+ - Link.java: represents a unidirectional connection between two nodes in the overlay
+ - StatisticsCollectorAndDisplay.java : responsible for collating and printing transmission statistics
+ - Utils.java : miscellaneous utility methods
+ - OverlayCreator.java : responsible for creating the k-regular graph network overlay
 
 transport
- - TcpReceiver.java
- - TcpServer.java
- - TcpConnection.java
- - TcpSender.java
+ - TcpReceiver.java : responsible for reading incoming data on a socket and notifying the node of the event
+ - TcpServer.java : server socker responsible for spawning sockets as clients connect
+ - TcpConnection.java : represents a TCP connection consisting of a send and receive socket
+ - TcpSender.java : responsible for writing outgoing data to a socket
 
 dijkstra
  - RoutingCache.java
