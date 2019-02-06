@@ -13,8 +13,6 @@ import cs455.wireformats.*;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 public class MessagingNode implements Node {
@@ -23,7 +21,6 @@ public class MessagingNode implements Node {
     private int registryPort;
     private TcpConnection registryTcpConnection;
     private TcpServer tcpServer;
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
     private Map<String, TcpSender> connectedNodes = new HashMap<>();
     private RoutingCache routingCache;
     private TrafficTracker trafficTracker = TrafficTracker.of();
@@ -35,6 +32,22 @@ public class MessagingNode implements Node {
 
     private static MessagingNode of(String registryHost, int registryPort) {
         return new MessagingNode(registryHost, registryPort);
+    }
+
+    private static void printHelpAndExit() {
+        Utils.out("USAGE: java cs455.node.MessagingNode <registry-host> <registry-port>\n");
+        System.exit(-1);
+    }
+
+    public static void main(String[] args) {
+        if (args.length != 2)
+            printHelpAndExit();
+
+        String registryIp = args[0];
+        int registryPort = Integer.parseInt(args[1]);
+
+        MessagingNode messagingNode = MessagingNode.of(registryIp, registryPort);
+        messagingNode.go();
     }
 
     private void go() {
@@ -49,7 +62,6 @@ public class MessagingNode implements Node {
 
     private void sendRegisterRequest() {
         // connectToRegistry() must be called before this, registrySender assumed to be valid
-        // TODO appears tcpServer is not up and running at this point, need to wait for it
         try {
             Thread.sleep(500);
             RegisterRequest request = RegisterRequest.of(tcpServer.getIp(), tcpServer.getPort(), registryTcpConnection.getSocket());
@@ -75,7 +87,6 @@ public class MessagingNode implements Node {
 
     @Override
     public void onEvent(Event event) {
-//        executor.execute(() -> handleEvent(event));
         handleEvent(event);
     }
 
@@ -301,7 +312,6 @@ public class MessagingNode implements Node {
             return;
         }
 
-        // TODO print if failure
         RegisterResponse response = (RegisterResponse) event;
         Utils.debug("received: " + response);
     }
@@ -315,7 +325,6 @@ public class MessagingNode implements Node {
         DeregisterResponse response = (DeregisterResponse) event;
         Utils.debug("received: " + response);
 
-        // TODO print if failure
         if (response.getStatus() == Status.SUCCESS) {
             Utils.debug("shutting down..");
             // TODO figure out how to close stream and socket cleanly so not to cause EOF
@@ -334,11 +343,9 @@ public class MessagingNode implements Node {
             Utils.out("\n");
 
             input = scanner.next();
-            if (input.startsWith("print-shortest-path")) {
+            if (input.startsWith("print-shortest-path"))
                 printShortestPath();
-            }
             else if (input.startsWith("exit-overlay"))
-//                executor.execute(this::sendDeregistrationRequest);
                 sendDeregistrationRequest();
         }
     }
@@ -365,22 +372,6 @@ public class MessagingNode implements Node {
     @Override
     public String getType() {
         return "MessagingNode";
-    }
-
-    private static void printHelpAndExit() {
-        Utils.out("USAGE: java cs455.node.MessagingNode <registry-host> <registry-port>\n");
-        System.exit(-1);
-    }
-
-    public static void main(String[] args) {
-        if (args.length != 2)
-            printHelpAndExit();
-
-        String registryIp = args[0];
-        int registryPort = Integer.parseInt(args[1]);
-
-        MessagingNode messagingNode = MessagingNode.of(registryIp, registryPort);
-        messagingNode.go();
     }
 
     private String getName() {

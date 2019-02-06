@@ -12,8 +12,6 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
@@ -21,7 +19,6 @@ import java.util.regex.Pattern;
 public class Registry implements Node {
     private int port;
     private TcpServer tcpServer;
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
     private Map<String, TcpSender> registeredNodes = new HashMap<>();
     private OverlayCreator overlayCreator;
     private AtomicInteger numCompletedNodes = new AtomicInteger(0);
@@ -32,6 +29,24 @@ public class Registry implements Node {
         this.port = port;
     }
 
+    private static Registry of(int port) {
+        return new Registry(port);
+    }
+
+    private static void printHelpAndExit() {
+        Utils.out("USAGE: java cs455.node.Registry <port-number>\n");
+        System.exit(-1);
+    }
+
+    public static void main(String[] args) {
+        if (args.length != 1)
+            printHelpAndExit();
+
+        int registryPort = Integer.parseInt(args[0]);
+        Registry registry = Registry.of(registryPort);
+        registry.go();
+    }
+
     private void go() {
         tcpServer = TcpServer.of(port, this);
         Thread thread = new Thread(tcpServer);
@@ -39,20 +54,14 @@ public class Registry implements Node {
         handleCmdLineInput();
     }
 
-    private static Registry of(int port) {
-        return new Registry(port);
-    }
-
     @Override
     public void onEvent(Event event) {
-//        executor.execute(() -> {
-            try {
-                handleEvent(event);
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
-//        });
+        try {
+            handleEvent(event);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void handleEvent(Event event) throws IOException {
@@ -98,8 +107,8 @@ public class Registry implements Node {
 
         numCompletedNodes.incrementAndGet();
         if (numCompletedNodes.get() == registeredNodes.keySet().size()) {
-            int numSeconds = 30;
-            Utils.info("Received TASK_COMPLETE message from all nodes");
+            int numSeconds = 10;
+            Utils.info("Received task completion message from all nodes");
             Utils.info(String.format("Waiting %d seconds for nodes to finalize transmissions...", numSeconds));
             try {
                 for (int i = 0; i < numSeconds; i++) {
@@ -304,6 +313,8 @@ public class Registry implements Node {
                 e.printStackTrace();
             }
         }
+
+        Utils.info("Task initiation message sent to registered nodes");
     }
 
     private void listWeights() {
@@ -336,6 +347,8 @@ public class Registry implements Node {
                 e.printStackTrace();
             }
         }
+
+        Utils.info("Overlay link weights sent to registered nodes");
     }
 
     private void setupOverlay(int cr) {
@@ -346,9 +359,10 @@ public class Registry implements Node {
         }
 
         for (String node : registeredNodes.keySet()) {
-//            executor.execute(() -> sendMessagingNodesList(node));
             sendMessagingNodesList(node);
         }
+
+        Utils.info("Overlay initialized and messaging nodes list message sent to registered nodes");
     }
 
     private void sendMessagingNodesList(String node) {
@@ -366,19 +380,5 @@ public class Registry implements Node {
     @Override
     public String getType() {
         return "Registry";
-    }
-
-    private static void printHelpAndExit() {
-        Utils.out("USAGE: java cs455.node.Registry <port-number>\n");
-        System.exit(-1);
-    }
-
-    public static void main(String[] args) {
-        if (args.length != 1)
-            printHelpAndExit();
-
-        int registryPort = Integer.parseInt(args[0]);
-        Registry registry = Registry.of(registryPort);
-        registry.go();
     }
 }
