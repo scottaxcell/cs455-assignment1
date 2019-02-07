@@ -1,0 +1,56 @@
+package cs455.overlay.transport;
+
+import cs455.overlay.node.Node;
+import cs455.overlay.util.Utils;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.UnknownHostException;
+
+public class TcpServer implements Runnable {
+    private ServerSocket serverSocket;
+    private Node node;
+
+    private TcpServer(int port, Node node) {
+        this.node = node;
+        try {
+            serverSocket = new ServerSocket(port);
+            Utils.info(String.format("%s TCP server started on %s:%d", node.getType(), getIp(), getPort()));
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static TcpServer of(int port, Node node) {
+        return new TcpServer(port, node);
+    }
+
+    @Override
+    public void run() {
+        try {
+            while (!Thread.interrupted()) {
+                Socket socket = serverSocket.accept();
+                TcpConnection.of(socket, node);
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getIp() {
+        try {
+            return serverSocket.getInetAddress().getLocalHost().getCanonicalHostName();
+        }
+        catch (UnknownHostException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    public int getPort() {
+        return serverSocket.getLocalPort();
+    }
+}
