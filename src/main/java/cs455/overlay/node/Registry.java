@@ -107,7 +107,7 @@ public class Registry implements Node {
 
         numCompletedNodes.incrementAndGet();
         if (numCompletedNodes.get() == registeredNodes.keySet().size()) {
-            int numSeconds = 10;
+            int numSeconds = 15;
             Utils.info("Received task completion message from all nodes");
             Utils.info(String.format("Waiting %d seconds for nodes to finalize transmissions...", numSeconds));
             try {
