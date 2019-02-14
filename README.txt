@@ -1,6 +1,6 @@
 Scott Axcell
 CS455 Homework 1: Programming Component
-02-04-2019
+02-13-2019
 
 Description:
   Using Dijkstras Shortest Paths to Route Packets in a Network Overlay
@@ -23,29 +23,28 @@ Run:
     * exit-overlay: sends a message to remove itself from the network overlay and terminates the process
 
 Classes:
-
 node
  - Node.java : interface that defines the onEvent method
- - MessagingNode.java :
- - Registry.java
+ - MessagingNode.java : initiates and accepts both communications and messages within the system
+ - Registry.java :  maintains information about the registered messaging nodes in a registry
 
 wireformats
- - TrafficSummary.java
- - RegisterResponse.java
- - PullTrafficSummary.java
- - MessagingNodesList.java
- - Handshake.java
- - DeregisterResponse.java
- - TaskComplete.java
- - RegisterRequest.java
- - LinkWeights.java
- - Status.java
- - EventFactory.java
- - TaskInitiate.java
- - DeregisterRequest.java
- - Event.java
- - Protocol.java
- - Message.java
+ - TrafficSummary.java : transmits traffic summary data
+ - RegisterResponse.java : notifies a node of registration success or failure
+ - PullTrafficSummary.java : requests a traffic summary from a node
+ - MessagingNodesList.java : transmitting node connections within the overlay
+ - Handshake.java : initiates a connection between nodes
+ - DeregisterResponse.java : notifies a node of deregistration from the registry
+ - TaskComplete.java : notifies registry of completion of messaging task
+ - RegisterRequest.java : notifies the registry that a node would like to register
+ - LinkWeights.java : lists the links and weights between all nodes within the overlay
+ - Status.java : interface that defines success of failure
+ - EventFactory.java : responsible for creating a POJO provided a data from a DataInputStream
+ - TaskInitiate.java : notifies a node to begin the messaging task
+ - DeregisterRequest.java : notifies the registry that a node would like to deregister
+ - Event.java : interface that defines methods common to all wireformats (getProtocol() and getBytes())
+ - Protocol.java : interface that defines wireformat (message) types
+ - Message.java : contains a payload to be used in the messaging task
 
 util
  - TrafficTracker.java : responsible for tracking transmission statistics on a node
@@ -61,4 +60,7 @@ transport
  - TcpSender.java : responsible for writing outgoing data to a socket
 
 dijkstra
- - RoutingCache.java
+ - RoutingCache.java : responsible for calculating the shortest paths in the overlay using Dijkstra's algorithm
+
+Notes for TA:
+The registry and nodes within the overlay should function as expected (fingers crossed).
