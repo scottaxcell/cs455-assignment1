@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class StatisticsCollectorAndDisplay {
+    private static final String[] columnHeaders = new String[]{"Node", "# Sent", "# Received", "Sent Sum", "Received Sum", "# Relayed"};
     private final int numNodes;
     private final int numRounds;
     private List<TrafficSummary> trafficSummaries = new ArrayList<>();
@@ -14,7 +15,6 @@ public class StatisticsCollectorAndDisplay {
     private int numReceived;
     private long sentSum;
     private long receiveSum;
-    private static final String[] columnHeaders = new String[]{"Node", "# Sent", "# Received", "Sent Sum", "Received Sum", "# Relayed"};
 
     private StatisticsCollectorAndDisplay(int numNodes, int numRounds) {
         this.numNodes = numNodes;
@@ -43,12 +43,12 @@ public class StatisticsCollectorAndDisplay {
         int[] justify = getColumnJustifications();
 
         sb = new StringBuilder();
-        sb.append(String.format("%-"+justify[0]+"s | ", "Node"));
-        sb.append(String.format("%"+justify[1]+"s | ", "# Sent"));
-        sb.append(String.format("%"+justify[2]+"s | ", "# Received"));
-        sb.append(String.format("%"+justify[3]+"s | ", "Sent Sum"));
-        sb.append(String.format("%"+justify[4]+"s | ", "Received Sum"));
-        sb.append(String.format("%"+justify[5]+"s\n", "# Relayed"));
+        sb.append(String.format("%-" + justify[0] + "s | ", "Node"));
+        sb.append(String.format("%" + justify[1] + "s | ", "# Sent"));
+        sb.append(String.format("%" + justify[2] + "s | ", "# Received"));
+        sb.append(String.format("%" + justify[3] + "s | ", "Sent Sum"));
+        sb.append(String.format("%" + justify[4] + "s | ", "Received Sum"));
+        sb.append(String.format("%" + justify[5] + "s\n", "# Relayed"));
 
         int headerSize = sb.toString().length() - 1;
         sb.append(String.join("", Collections.nCopies(headerSize, "=")) + "\n");
@@ -56,22 +56,22 @@ public class StatisticsCollectorAndDisplay {
 
         for (TrafficSummary trafficSummary : trafficSummaries) {
             sb = new StringBuilder();
-            sb.append(String.format("%-"+justify[0]+"s | ", trafficSummary.getNode()));
-            sb.append(String.format("%"+justify[1]+"s | ", trafficSummary.getNumSent()));
-            sb.append(String.format("%"+justify[2]+"s | ", trafficSummary.getNumReceived()));
-            sb.append(String.format("%"+justify[3]+"s | ", trafficSummary.getSentSum()));
-            sb.append(String.format("%"+justify[4]+"s | ", trafficSummary.getReceivedSum()));
-            sb.append(String.format("%"+justify[5]+"s\n", trafficSummary.getNumRelayed()));
+            sb.append(String.format("%-" + justify[0] + "s | ", trafficSummary.getNode()));
+            sb.append(String.format("%" + justify[1] + "s | ", trafficSummary.getNumSent()));
+            sb.append(String.format("%" + justify[2] + "s | ", trafficSummary.getNumReceived()));
+            sb.append(String.format("%" + justify[3] + "s | ", trafficSummary.getSentSum()));
+            sb.append(String.format("%" + justify[4] + "s | ", trafficSummary.getReceivedSum()));
+            sb.append(String.format("%" + justify[5] + "s\n", trafficSummary.getNumRelayed()));
             Utils.out(sb.toString());
         }
 
         sb = new StringBuilder();
         sb.append(String.join("", Collections.nCopies(headerSize, "-")) + "\n");
-        sb.append(String.format("%-"+justify[0]+"s | ", "Sum"));
-        sb.append(String.format("%"+justify[1]+"s | ", numSent));
-        sb.append(String.format("%"+justify[2]+"s | ", numReceived));
-        sb.append(String.format("%"+justify[3]+"s | ", sentSum));
-        sb.append(String.format("%"+justify[4]+"s |\n", receiveSum));
+        sb.append(String.format("%-" + justify[0] + "s | ", "Sum"));
+        sb.append(String.format("%" + justify[1] + "s | ", numSent));
+        sb.append(String.format("%" + justify[2] + "s | ", numReceived));
+        sb.append(String.format("%" + justify[3] + "s | ", sentSum));
+        sb.append(String.format("%" + justify[4] + "s |\n", receiveSum));
         Utils.out(sb.toString());
     }
 

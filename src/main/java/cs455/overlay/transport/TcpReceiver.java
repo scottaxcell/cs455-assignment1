@@ -38,7 +38,7 @@ public class TcpReceiver implements Runnable {
                 Event event = EventFactory.getMessageFromData(data, socket);
                 node.onEvent(event);
             }
-            catch (SocketException e){
+            catch (SocketException e) {
                 e.printStackTrace();
                 break;
             }

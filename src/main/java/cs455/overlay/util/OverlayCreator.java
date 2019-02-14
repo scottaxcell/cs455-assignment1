@@ -230,6 +230,16 @@ public class OverlayCreator {
             addLink(Link.of(links.get(i).getSink(), links.get(i).getSource(), links.get(i).getWeight()));
     }
 
+    @Override
+    public String toString() {
+        return "OverlayCreator{" +
+            "cr=" + cr +
+            ", nodes=" + nodes +
+            ", connections=" + connections +
+            ", links=" + links +
+            '}';
+    }
+
     private final class Dfs {
         private Queue<String> queue = new ArrayDeque<>();
         private List<String> visited = new ArrayList<>();
@@ -251,15 +261,5 @@ public class OverlayCreator {
             }
             return false;
         }
-    }
-
-    @Override
-    public String toString() {
-        return "OverlayCreator{" +
-            "cr=" + cr +
-            ", nodes=" + nodes +
-            ", connections=" + connections +
-            ", links=" + links +
-            '}';
     }
 }
