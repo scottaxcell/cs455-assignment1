@@ -1,4 +1,4 @@
-Scott Axcell
+Scott Axcell (827239918)
 CS455 Homework 1: Programming Component
 02-13-2019
 
@@ -63,4 +63,15 @@ dijkstra
  - RoutingCache.java : responsible for calculating the shortest paths in the overlay using Dijkstra's algorithm
 
 Notes for TA:
-The registry and nodes within the overlay should function as expected (fingers crossed).
+The Registry server and MessagingNodes within the overlay should function as spec'd in the assignment (fingers crossed).
+
+I've included a machine_list file with 10 machine names and a start.sh that I've had success with.
+I've included these just in case my program hits any issues using your test scripts.
+The files assume you're running from the phoenix machine. To run your tests using these files, do the following;
+
+Run the Registry:
+$ cd build/classes/java/main
+$ java cs455.overlay.node.Registry 50701
+
+Run the MessagingNodes:
+$ ./start.sh
